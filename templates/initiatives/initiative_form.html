@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h1>{% if object %}Edit{% else %}New{% endif %} AI <span class="gradient-text">Initiative</span></h1>
+
+    <div class="card glass">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-grid">
+                {% for field in form %}
+                <div
+                    class="form-group {% if field.name == 'description' or field.name == 'value' %}full-width{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <small class="help-text">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                    <div class="error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; justify-content: flex-end; align-items: center; gap: 1.5rem;">
+                <a href="{% url 'initiative_list' %}" class="btn-text">Cancel</a>
+                <button type="submit" class="btn-primary">Save Initiative</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+    }
+
+    .full-width {
+        grid-column: span 2;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 1rem;
+        transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    .error {
+        color: #ef4444;
+        font-size: 0.75rem;
+    }
+</style>
+{% endblock %}

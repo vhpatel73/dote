@@ -1,0 +1,95 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DOTE - AI Initiatives Tracker{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+    <div class="ai-flare"></div>
+    <nav class="glass">
+        <div class="logo-container">
+            <a href="{% url 'dashboard' %}" class="logo-link">
+                <img src="{% static 'img/logo.png' %}" alt="AAA Logo"
+                    style="height: 40px; width: auto; object-fit: contain; filter: brightness(0) invert(1);">
+                <div class="brand-text">
+                    <span class="brand-title">DOTE</span>
+                    <span class="brand-subtitle">Department of Technology Efficiency</span>
+                </div>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="{% url 'dashboard' %}" class="btn-text">Dashboard</a>
+            <a href="{% url 'initiative_list' %}" class="btn-text">Initiatives</a>
+            <a href="{% url 'initiative_create' %}" class="btn-primary">
+                <i class="fas fa-plus"></i> New Initiative
+            </a>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} glass">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="fine-print">
+                ACG - Department of Technology efficiency
+            </div>
+            <div class="footer-links">
+                {% block footer_links %}{% endblock %}
+            </div>
+        </div>
+    </footer>
+
+    <style>
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .btn-text {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .btn-text:hover {
+            color: var(--primary-color);
+        }
+
+        .messages {
+            margin-bottom: 2rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

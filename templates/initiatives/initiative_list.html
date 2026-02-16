@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+    <h1>AI <span class="gradient-text">Initiatives</span></h1>
+    <div style="display: flex; gap: 1rem;">
+        <form action="{% url 'csv_upload' %}" method="post" enctype="multipart/form-data"
+            style="display: flex; align-items: center; gap: 0.75rem;">
+            {% csrf_token %}
+            <label class="custom-file-upload">
+                <i class="fas fa-file-csv"></i>
+                <span id="file-name">Choose CSV</span>
+                <input type="file" name="csv_file" required onchange="updateFileName(this)"
+                    style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
+            </label>
+            <button type="submit" class="btn-secondary">
+                <i class="fas fa-upload"></i> Import CSV
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="card glass" style="overflow-x: auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>Requester</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th>Technology</th>
+                <th>Benefit Name</th>
+                <th>Target Benefit</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for initiative in initiatives %}
+            <tr>
+                <td>
+                    <a href="{% url 'initiative_edit' initiative.pk %}" class="edit-link">
+                        <strong>{{ initiative.requester_name }}</strong>
+                    </a>
+                </td>
+                <td>{{ initiative.department }}</td>
+                <td>
+                    <span class="badge status-{{ initiative.status|lower|cut:' ' }}">
+                        {{ initiative.status }}
+                    </span>
+                </td>
+                <td>{{ initiative.technology }}</td>
+                <td>{{ initiative.benefit_name }}</td>
+                <td>${{ initiative.benefit|floatformat:2|intcomma }}</td>
+                <td class="actions-cell">
+                    <a href="{% url 'initiative_edit' initiative.pk %}" class="action-btn" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'benefit_entry' initiative.pk %}" class="action-btn benefit"
+                        title="Monthly Benefits">
+                        <i class="fas fa-chart-line"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 4rem;">
+                    <div class="empty-state">
+                        <div class="ai-eye" style="margin-bottom: 1rem;"></div>
+                        <p>No initiatives found yet. Feeling lonely, enter one entry!</p>
+                        <a href="{% url 'initiative_create' %}" class="btn-primary" style="margin-top: 1.5rem;">
+                            <i class="fas fa-plus"></i> Create First Initiative
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<nav class="pagination">
+    {% if page_obj.has_previous %}
+    <div class="page-item">
+        <a class="page-link"
+            href="?page=1{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">
+            <i class="fas fa-angle-double-left"></i>
+        </a>
+    </div>
+    <div class="page-item">
+        <a class="page-link"
+            href="?page={{ page_obj.previous_page_number }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">
+            <i class="fas fa-angle-left"></i>
+        </a>
+    </div>
+    {% else %}
+    <div class="page-item disabled">
+        <span class="page-link"><i class="fas fa-angle-left"></i></span>
+    </div>
+    {% endif %}
+
+    <div class="page-item active">
+        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    </div>
+
+    {% if page_obj.has_next %}
+    <div class="page-item">
+        <a class="page-link"
+            href="?page={{ page_obj.next_page_number }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">
+            <i class="fas fa-angle-right"></i>
+        </a>
+    </div>
+    <div class="page-item">
+        <a class="page-link"
+            href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">
+            <i class="fas fa-angle-double-right"></i>
+        </a>
+    </div>
+    {% else %}
+    <div class="page-item disabled">
+        <span class="page-link"><i class="fas fa-angle-right"></i></span>
+    </div>
+    {% endif %}
+</nav>
+{% endif %}
+
+<style>
+    .badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .status-live {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-pilot {
+        background: #fef9c3;
+        color: #854d0e;
+    }
+
+    .status-in-progress {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-planning {
+        background: #f1f5f9;
+        color: #475569;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateFileName(input) {
+        const fileName = input.files[0] ? input.files[0].name : 'Choose CSV';
+        document.getElementById('file-name').textContent = fileName;
+    }
+</script>
+{% endblock %}
+{% block footer_links %}
+<a href="{% url 'csv_sample' %}">
+    <i class="fas fa-file-download"></i> Sample CSV
+</a>
+<a href="{% url 'csv_download' %}">
+    <i class="fas fa-download"></i> Export CSV
+</a>
+{% endblock %}

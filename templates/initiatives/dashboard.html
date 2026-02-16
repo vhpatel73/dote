@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+<header style="margin-bottom: 2rem;">
+    <h1>Value <span class="gradient-text">Dashboard</span></h1>
+    <p class="stat-label" style="font-size: 0.7rem; margin-top: -0.5rem;">AI initiatives At A Glance and realized
+        values.</p>
+</header>
+
+<div class="stats-grid">
+    <div class="stat-card glass">
+        <div class="stat-value">{{ total_initiatives }}</div>
+        <div class="stat-label">Total Initiatives</div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-value">${{ total_benefit|floatformat:2|intcomma }}</div>
+        <div class="stat-label">Total Realized Benefit</div>
+    </div>
+</div>
+
+<div class="grid" style="margin-bottom: 3rem;">
+    <!-- Donut Charts -->
+    <div class="card glass">
+        <h3 style="text-align: center;">Initiatives by Department</h3>
+        {% if total_initiatives > 0 %}
+        <canvas id="deptChart"></canvas>
+        {% else %}
+        <div class="empty-state">
+            <div class="chart-pulse"></div>
+            <p>Nothing to report yet...</p>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card glass">
+        <h3 style="text-align: center;">Initiatives by Status</h3>
+        {% if total_initiatives > 0 %}
+        <canvas id="statusChart"></canvas>
+        {% else %}
+        <div class="empty-state">
+            <div class="ai-eye"></div>
+            <p>Feeling lonely, enter one entry!</p>
+        </div>
+        {% endif %}
+    </div>
+    <div class="card glass">
+        <h3 style="text-align: center;">Initiatives by Technology</h3>
+        {% if total_initiatives > 0 %}
+        <canvas id="techChart"></canvas>
+        {% else %}
+        <div class="empty-state">
+            <div class="chart-pulse" style="--secondary-color: var(--primary-color)"></div>
+            <p>Waiting for the first AI spark...</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div style="margin-top: 3rem;">
+    <h3>Realized Benefit by <span class="gradient-text">Department</span></h3>
+
+    <div class="benefit-deck">
+        {% for item in benefit_by_dept %}
+        <div class="card glass benefit-card">
+            <div class="benefit-card-header">
+                <div class="dept-icon">
+                    {{ item.initiative__department|slice:":1"|upper }}
+                </div>
+                <div>
+                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);">
+                        {{ item.initiative__department }}
+                    </div>
+                    <div class="stat-label" style="font-size: 0.6rem;">Estimated Realized Value</div>
+                </div>
+            </div>
+
+            <div class="benefit-card-body">
+                <div class="benefit-value-large">
+                    ${{ item.total|floatformat:2|intcomma }}
+                </div>
+                <div class="text-tiny" style="margin-top: -0.5rem;">Based on {{ item.count }} Initiatives</div>
+            </div>
+
+            <div class="benefit-card-footer">
+                <button class="btn-secondary" style="justify-content: center;"
+                    onclick="showBreakdown('{{ item.initiative__department }}')">
+                    View Breakdown <i class="fas fa-arrow-right" style="font-size: 0.8rem; margin-left: 0.5rem;"></i>
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <div class="card glass" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
+            <div class="empty-state">
+                <p>No benefit data available. Start by recording a monthly benefit.</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ dept_data|json_script:"dept-data" }}
+{{ status_data|json_script:"status-data" }}
+{{ tech_data|json_script:"tech-data" }}
+
+<script>
+    const COLORS = [
+        '#007AFF', '#8E24AA', '#00C7BE', '#FF9500', '#FF3B30',
+        '#5856D6', '#AF52DE', '#FF2D55', '#34C759', '#5AC8FA'
+    ];
+
+    function createChart(id, labels, data, title) {
+        new Chart(document.getElementById(id), {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: COLORS,
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
+            },
+            options: {
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { family: 'Inter', size: 12 }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    // Prepare data
+    {% if total_initiatives > 0 %}
+    const deptDataRaw = JSON.parse(document.getElementById('dept-data').textContent);
+    const statusDataRaw = JSON.parse(document.getElementById('status-data').textContent);
+    const techDataRaw = JSON.parse(document.getElementById('tech-data').textContent);
+
+    createChart('deptChart', deptDataRaw.labels, deptDataRaw.counts, 'Department Distribution');
+    createChart('statusChart', statusDataRaw.labels, statusDataRaw.counts, 'Status Distribution');
+    createChart('techChart', techDataRaw.labels, techDataRaw.counts, 'Technology Distribution');
+    {% endif %}
+
+    function showBreakdown(dept) {
+        window.location.href = `{% url 'initiative_list' %}?department=${dept}`;
+    }
+</script>
+{% endblock %}
