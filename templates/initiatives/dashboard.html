@@ -10,52 +10,54 @@
 </header>
 
 <div class="stats-grid">
-    <div class="stat-card glass clickable-card" onclick="window.location.href='{% url 'initiative_list' %}'">
+    <div class="stat-card glass clickable-card" onclick="location.href='{% url 'initiative_list' %}';">
         <div class="stat-header">
-            <div class="stat-icon-box" style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">
-                <i class="fas fa-rocket"></i>
+            <div class="stat-icon-box" style="background: rgba(66, 133, 244, 0.1); color: #4285F4;">
+                <i class="fas fa-vault"></i>
             </div>
             <div class="stat-label">Total Initiatives</div>
         </div>
         <div class="stat-value">{{ total_initiatives }}</div>
     </div>
-    <div class="stat-card glass clickable-card" onclick="window.location.href='{% url 'initiative_list' %}?q=Live'">
+    <div class="stat-card glass clickable-card" onclick="location.href='{% url 'initiative_list' %}?q=Live';">
         <div class="stat-header">
-            <div class="stat-icon-box" style="background: rgba(234, 88, 12, 0.1); color: #ea580c;">
-                <i class="fas fa-signal"></i>
+            <div class="stat-icon-box" style="background: rgba(52, 168, 83, 0.1); color: #34A853;">
+                <i class="fas fa-rocket"></i>
             </div>
             <div class="stat-label">Live Capabilities</div>
         </div>
         <div class="stat-value">{{ live_systems }}</div>
     </div>
     <div class="stat-card glass clickable-card"
-        onclick="window.location.href='{% url 'initiative_list' %}?q=Productivity+Gain'">
+        onclick="location.href='{% url 'initiative_list' %}?q=Productivity+Gain';">
         <div class="stat-header">
-            <div class="stat-icon-box" style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">
-                <i class="fas fa-stopwatch-20"></i>
+            <div class="stat-icon-box" style="background: rgba(251, 188, 5, 0.1); color: #FBBC05;">
+                <i class="fas fa-stopwatch"></i>
             </div>
-            <div class="stat-label">Productivity Gain ($)</div>
+            <div class="stat-label">Productivity Gain</div>
         </div>
         <div class="stat-value">${{ total_productivity|floatformat:2|intcomma }}</div>
+        <span class="text-tiny">Since Inception</span>
     </div>
-    <div class="stat-card glass clickable-card"
-        onclick="window.location.href='{% url 'initiative_list' %}?q=New+Business'">
+    <div class="stat-card glass clickable-card" onclick="location.href='{% url 'initiative_list' %}?q=New+Business';">
         <div class="stat-header">
-            <div class="stat-icon-box" style="background: rgba(22, 101, 52, 0.1); color: #166534;">
-                <i class="fas fa-chart-line"></i>
+            <div class="stat-icon-box" style="background: rgba(234, 67, 53, 0.1); color: #EA4335;">
+                <i class="fas fa-money-bill-wave"></i>
             </div>
             <div class="stat-label">Revenue Impact ($)</div>
         </div>
         <div class="stat-value">${{ total_revenue|floatformat:2|intcomma }}</div>
+        <span class="text-tiny">Since Inception</span>
     </div>
-    <div class="stat-card glass clickable-card" onclick="window.location.href='{% url 'initiative_list' %}'">
+    <div class="stat-card glass clickable-card" onclick="location.href='{% url 'initiative_list' %}';">
         <div class="stat-header">
-            <div class="stat-icon-box" style="background: rgba(142, 36, 170, 0.1); color: var(--secondary-color);">
-                <i class="fas fa-vault"></i>
+            <div class="stat-icon-box" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;">
+                <i class="fas fa-signal"></i>
             </div>
             <div class="stat-label">Total Impact</div>
         </div>
         <div class="stat-value">${{ total_overall|floatformat:2|intcomma }}</div>
+        <div class="text-tiny">Since Inception</div>
     </div>
 </div>
 
@@ -119,7 +121,9 @@
     <div class="card glass">
         <h3 style="text-align: center;">Initiatives by Department</h3>
         {% if total_initiatives > 0 %}
-        <canvas id="deptChart"></canvas>
+        <div style="height: 250px; position: relative;">
+            <canvas id="deptChart"></canvas>
+        </div>
         {% else %}
         <div class="empty-state">
             <div class="chart-pulse"></div>
@@ -130,7 +134,9 @@
     <div class="card glass">
         <h3 style="text-align: center;">Initiatives by Status</h3>
         {% if total_initiatives > 0 %}
-        <canvas id="statusChart"></canvas>
+        <div style="height: 250px; position: relative;">
+            <canvas id="statusChart"></canvas>
+        </div>
         {% else %}
         <div class="empty-state">
             <div class="ai-eye"></div>
@@ -141,7 +147,9 @@
     <div class="card glass">
         <h3 style="text-align: center;">Initiatives by Technology</h3>
         {% if total_initiatives > 0 %}
-        <canvas id="techChart"></canvas>
+        <div style="height: 250px; position: relative;">
+            <canvas id="techChart"></canvas>
+        </div>
         {% else %}
         <div class="empty-state">
             <div class="chart-pulse" style="--secondary-color: var(--primary-color)"></div>
@@ -213,13 +221,17 @@
 {{ tech_data|json_script:"tech-data" }}
 
 <script>
+    // Chart Color Palette
     const COLORS = [
         '#007AFF', '#8E24AA', '#00C7BE', '#FF9500', '#FF3B30',
         '#5856D6', '#AF52DE', '#FF2D55', '#34C759', '#5AC8FA'
     ];
 
     function createChart(id, labels, data, title) {
-        new Chart(document.getElementById(id), {
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+
+        new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: labels,
@@ -246,19 +258,38 @@
         });
     }
 
-    // Prepare data
+    // Initialize charts if data exists
     {% if total_initiatives > 0 %}
-    const deptDataRaw = JSON.parse(document.getElementById('dept-data').textContent);
-    const statusDataRaw = JSON.parse(document.getElementById('status-data').textContent);
-    const techDataRaw = JSON.parse(document.getElementById('tech-data').textContent);
+    (function () {
+        function getJsonData(id) {
+            var el = document.getElementById(id);
+            if (!el) return null;
+            try {
+                return JSON.parse(el.textContent);
+            } catch (e) {
+                return null;
+            }
+        }
 
-    createChart('deptChart', deptDataRaw.labels, deptDataRaw.counts, 'Department Distribution');
-    createChart('statusChart', statusDataRaw.labels, statusDataRaw.counts, 'Status Distribution');
-    createChart('techChart', techDataRaw.labels, techDataRaw.counts, 'Technology Distribution');
+        var deptData = getJsonData('dept-data');
+        var statusData = getJsonData('status-data');
+        var techData = getJsonData('tech-data');
+
+        if (deptData && deptData.labels && deptData.labels.length > 0) {
+            createChart('deptChart', deptData.labels, deptData.counts, 'Department Distribution');
+        }
+        if (statusData && statusData.labels && statusData.labels.length > 0) {
+            createChart('statusChart', statusData.labels, statusData.counts, 'Status Distribution');
+        }
+        if (techData && techData.labels && techData.labels.length > 0) {
+            createChart('techChart', techData.labels, techData.counts, 'Technology Distribution');
+        }
+    })();
     {% endif %}
 
     function showBreakdown(dept) {
-        window.location.href = `{% url 'initiative_list' %}?department=${dept}`;
+        var url = "{% url 'initiative_list' %}";
+        window.location.href = url + "?department=" + encodeURIComponent(dept);
     }
 </script>
 {% endblock %}

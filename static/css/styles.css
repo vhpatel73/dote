@@ -305,6 +305,13 @@ h3 {
     letter-spacing: 0.05em;
 }
 
+.stat-card .text-tiny {
+    text-align: center;
+    margin-top: -.2rem;
+    font-size: 0.5rem;
+    opacity: 0.8;
+}
+
 /* Empty State Styles */
 .empty-state {
     display: flex;
