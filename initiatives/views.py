@@ -5,7 +5,7 @@ from django.views.generic import ListView, CreateView, UpdateView, DetailView, V
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, F, ExpressionWrapper, FloatField
 import json
 from .models import Initiative, RealizedBenefit
 from datetime import datetime
@@ -20,17 +20,35 @@ class DashboardView(View):
         status_stats = list(initiatives.values('status').annotate(count=Count('id')).order_by('status'))
         tech_stats = list(initiatives.values('technology').annotate(count=Count('id')).order_by('technology'))
         
-        # Total realized benefit by Department
-        benefit_by_dept = list(RealizedBenefit.objects.values('initiative__department')
-                               .annotate(total=Sum('amount'), count=Count('initiative', distinct=True))
-                               .order_by('initiative__department'))
+        # New Aggregations for Benefits (Calculated on the fly)
+        productivity_dollars = RealizedBenefit.objects.filter(
+            initiative__benefit_name='Productivity Gain'
+        ).aggregate(
+            total=Sum(F('kpi_value') * F('initiative__multiplier_minutes') * F('initiative__multiplier_dollars'))
+        )['total'] or 0
         
-        # Total overall benefit
-        total_benefit = RealizedBenefit.objects.aggregate(Sum('amount'))['amount__sum'] or 0
+        revenue_impact = RealizedBenefit.objects.filter(
+            initiative__benefit_name='New Business'
+        ).aggregate(Sum('revenue_impact'))['revenue_impact__sum'] or 0
+        
+        # Breakdown by Department (Summing both types of benefits)
+        benefit_by_dept = list(RealizedBenefit.objects.values('initiative__department')
+                               .annotate(
+                                   total_prod=Sum(F('kpi_value') * F('initiative__multiplier_minutes') * F('initiative__multiplier_dollars')),
+                                   total_rev=Sum('revenue_impact'),
+                                   count=Count('initiative', distinct=True)
+                               ).order_by('initiative__department'))
+        
+        # Inject combined total for the UI
+        for item in benefit_by_dept:
+            item['total'] = (item['total_prod'] or 0) + (item['total_rev'] or 0)
         
         context = {
             'total_initiatives': initiatives.count(),
-            'total_benefit': total_benefit,
+            'total_productivity': productivity_dollars,
+            'total_revenue': revenue_impact,
+            'total_overall': productivity_dollars + revenue_impact,
+            'live_systems': initiatives.filter(status='Live').count(),
             'dept_stats': dept_stats,
             'status_stats': status_stats,
             'tech_stats': tech_stats,
@@ -66,32 +84,40 @@ class InitiativeUpdateView(UpdateView):
     template_name = 'initiatives/initiative_form.html'
     success_url = reverse_lazy('initiative_list')
 
+class InitiativeDeleteView(View):
+    def post(self, request, pk):
+        initiative = get_object_or_404(Initiative, pk=pk)
+        initiative.delete()
+        messages.success(request, "Initiative deleted successfully.")
+        return redirect('initiative_list')
+
 class RealizedBenefitEntryView(View):
     def get(self, request, pk):
-        initiative = Initiative.objects.get(pk=pk)
+        initiative = get_object_or_404(Initiative, pk=pk)
         history = RealizedBenefit.objects.filter(initiative=initiative).order_by('-month')[:12]
         return render(request, 'initiatives/benefit_entry.html', {
             'initiative': initiative,
             'history': history,
-            'benefit_types': [c[0] for c in RealizedBenefit.BENEFIT_TYPE_CHOICES]
         })
 
     def post(self, request, pk):
-        initiative = Initiative.objects.get(pk=pk)
+        initiative = get_object_or_404(Initiative, pk=pk)
         month_str = request.POST.get('month')
-        benefit_type = request.POST.get('benefit_type')
-        amount = request.POST.get('amount')
+        kpi_value = float(request.POST.get('kpi_value') or 0)
+        revenue_impact = float(request.POST.get('revenue_impact') or 0)
         
         month = datetime.strptime(month_str, '%Y-%m').date()
         
         RealizedBenefit.objects.update_or_create(
             initiative=initiative,
             month=month,
-            benefit_type=benefit_type,
-            defaults={'amount': amount}
+            defaults={
+                'kpi_value': kpi_value,
+                'revenue_impact': revenue_impact
+            }
         )
         
-        messages.success(request, "Realized benefit recorded successfully.")
+        messages.success(request, "Monthly tracking updated.")
         return redirect('benefit_entry', pk=pk)
 
 class RealizedBenefitDeleteView(View):
@@ -99,7 +125,7 @@ class RealizedBenefitDeleteView(View):
         benefit = get_object_or_404(RealizedBenefit, pk=pk)
         initiative_pk = benefit.initiative.pk
         benefit.delete()
-        messages.success(request, "Benefit entry deleted.")
+        messages.success(request, "Entry deleted.")
         return redirect('benefit_entry', pk=initiative_pk)
 
 class CSVDownloadView(View):
@@ -109,16 +135,17 @@ class CSVDownloadView(View):
         
         writer = csv.writer(response)
         writer.writerow([
-            'Requester Name', 'Description', 'LOB Owner', 'IT Owner', 
-            'Department', 'Status', 'Technology', 'Value', 
-            'Benefit Name', 'Benefit'
+            'Initiative Name', 'Requester Name', 'LOB Owner', 'Description', 'IT Owner', 
+            'IT Owner Email', 'Department', 'Status', 'Technology', 'Value', 
+            'Benefit Name', 'KPI Name', 'Multiplier Minutes', 'Multiplier Dollars'
         ])
         
         for initiative in Initiative.objects.all():
             writer.writerow([
-                initiative.requester_name, initiative.description, initiative.lob_owner, initiative.it_owner,
-                initiative.department, initiative.status, initiative.technology, initiative.value,
-                initiative.benefit_name, initiative.benefit
+                initiative.name, initiative.requester_name, initiative.lob_owner, initiative.description, 
+                initiative.it_owner, initiative.it_owner_email, initiative.department, initiative.status, 
+                initiative.technology, initiative.value, initiative.benefit_name,
+                initiative.kpi_name, initiative.multiplier_minutes, initiative.multiplier_dollars
             ])
             
         return response
@@ -135,18 +162,25 @@ class CSVUploadView(View):
         next(io_string) # Skip header
         
         for column in csv.reader(io_string, delimiter=',', quotechar='"'):
-            _, created = Initiative.objects.update_or_create(
-                requester_name=column[0],
+            if len(column) < 14:
+                continue
+
+            Initiative.objects.update_or_create(
+                name=column[0],
                 defaults={
-                    'description': column[1],
+                    'requester_name': column[1],
                     'lob_owner': column[2],
-                    'it_owner': column[3],
-                    'department': column[4],
-                    'status': column[5],
-                    'technology': column[6],
-                    'value': column[7],
-                    'benefit_name': column[8],
-                    'benefit': column[9]
+                    'description': column[3],
+                    'it_owner': column[4],
+                    'it_owner_email': column[5],
+                    'department': column[6],
+                    'status': column[7],
+                    'technology': column[8],
+                    'value': column[9],
+                    'benefit_name': column[10],
+                    'kpi_name': column[11],
+                    'multiplier_minutes': float(column[12] or 0),
+                    'multiplier_dollars': float(column[13] or 0)
                 }
             )
             
@@ -160,13 +194,13 @@ class SampleCSVDownloadView(View):
         
         writer = csv.writer(response)
         writer.writerow([
-            'Requester Name', 'Description', 'LOB Owner', 'IT Owner', 
-            'Department', 'Status', 'Technology', 'Value', 
-            'Benefit Name', 'Benefit'
+            'Initiative Name', 'Requester Name', 'LOB Owner', 'Description', 'IT Owner', 
+            'IT Owner Email', 'Department', 'Status', 'Technology', 'Value', 
+            'Benefit Name', 'KPI Name', 'Multiplier Minutes', 'Multiplier Dollars'
         ])
         writer.writerow([
-            'John Doe', 'AI Chatbot for customer support', 'Claims', 'IT Team',
-            'Claims', 'In-progress', 'OpenAI GPT-4', 'Reduce response time by 50%',
-            'FTE Savings', '150000.0'
+            'Customer Support Chatbot', 'John Doe', 'Claims', 'AI Chatbot for customer support', 'IT Team',
+            'it-claims@example.com', 'Claims', 'In-progress', 'OpenAI GPT-4', 'Reduce response time by 50%',
+            'Productivity Gain', 'Calls Handled', '5.0', '25.0'
         ])
         return response

@@ -26,13 +26,12 @@
     <table>
         <thead>
             <tr>
-                <th>Requester</th>
+                <th>Name</th>
                 <th>Department</th>
                 <th>Status</th>
                 <th>Technology</th>
                 <th>Benefit Name</th>
-                <th>Target Benefit</th>
-                <th>Actions</th>
+                <th>Add Realized Benefit</th>
             </tr>
         </thead>
         <tbody>
@@ -40,7 +39,7 @@
             <tr>
                 <td>
                     <a href="{% url 'initiative_edit' initiative.pk %}" class="edit-link">
-                        <strong>{{ initiative.requester_name }}</strong>
+                        <strong>{{ initiative.name }}</strong>
                     </a>
                 </td>
                 <td>{{ initiative.department }}</td>
@@ -51,20 +50,16 @@
                 </td>
                 <td>{{ initiative.technology }}</td>
                 <td>{{ initiative.benefit_name }}</td>
-                <td>${{ initiative.benefit|floatformat:2|intcomma }}</td>
-                <td class="actions-cell">
-                    <a href="{% url 'initiative_edit' initiative.pk %}" class="action-btn" title="Edit">
-                        <i class="fas fa-edit"></i>
-                    </a>
+                <td class="actions-cell" style="justify-content: center;">
                     <a href="{% url 'benefit_entry' initiative.pk %}" class="action-btn benefit"
-                        title="Monthly Benefits">
-                        <i class="fas fa-chart-line"></i>
+                        style="width: auto; padding: 0 0.75rem; gap: 8px;" title="Add Realized Benefit"> +
+                        <i class="fas fa-file-invoice-dollar"></i>
                     </a>
                 </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" style="text-align: center; padding: 4rem;">
+                <td colspan="6" style="text-align: center; padding: 4rem;">
                     <div class="empty-state">
                         <div class="ai-eye" style="margin-bottom: 1rem;"></div>
                         <p>No initiatives found yet. Feeling lonely, enter one entry!</p>

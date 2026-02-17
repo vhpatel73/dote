@@ -11,14 +11,95 @@
 
 <div class="stats-grid">
     <div class="stat-card glass">
+        <div class="stat-header">
+            <div class="stat-icon-box" style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">
+                <i class="fas fa-rocket"></i>
+            </div>
+            <div class="stat-label">Total Initiatives</div>
+        </div>
         <div class="stat-value">{{ total_initiatives }}</div>
-        <div class="stat-label">Total Initiatives</div>
     </div>
     <div class="stat-card glass">
-        <div class="stat-value">${{ total_benefit|floatformat:2|intcomma }}</div>
-        <div class="stat-label">Total Realized Benefit</div>
+        <div class="stat-header">
+            <div class="stat-icon-box" style="background: rgba(234, 88, 12, 0.1); color: #ea580c;">
+                <i class="fas fa-signal"></i>
+            </div>
+            <div class="stat-label">Live Capabilities</div>
+        </div>
+        <div class="stat-value">{{ live_systems }}</div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-header">
+            <div class="stat-icon-box" style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">
+                <i class="fas fa-stopwatch-20"></i>
+            </div>
+            <div class="stat-label">Productivity Gain ($)</div>
+        </div>
+        <div class="stat-value">${{ total_productivity|floatformat:2|intcomma }}</div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-header">
+            <div class="stat-icon-box" style="background: rgba(22, 101, 52, 0.1); color: #166534;">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-label">Revenue Impact ($)</div>
+        </div>
+        <div class="stat-value">${{ total_revenue|floatformat:2|intcomma }}</div>
+    </div>
+    <div class="stat-card glass">
+        <div class="stat-header">
+            <div class="stat-icon-box" style="background: rgba(142, 36, 170, 0.1); color: var(--secondary-color);">
+                <i class="fas fa-vault"></i>
+            </div>
+            <div class="stat-label">Total Impact</div>
+        </div>
+        <div class="stat-value">${{ total_overall|floatformat:2|intcomma }}</div>
     </div>
 </div>
+
+<style>
+    .stat-card {
+        padding: 1.25rem !important;
+        text-align: left !important;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .stat-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .stat-icon-box {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.875rem;
+        flex-shrink: 0;
+    }
+
+    .stat-value {
+        font-size: 1.5rem !important;
+        margin-top: 0.25rem;
+        background: var(--accent-glow);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-align: center;
+        width: 100%;
+    }
+
+    .stat-label {
+        font-size: 0.7rem !important;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+</style>
 
 <div class="grid" style="margin-bottom: 3rem;">
     <!-- Donut Charts -->
@@ -79,7 +160,19 @@
                 <div class="benefit-value-large">
                     ${{ item.total|floatformat:2|intcomma }}
                 </div>
-                <div class="text-tiny" style="margin-top: -0.5rem;">Based on {{ item.count }} Initiatives</div>
+                <div style="display: flex; gap: 1rem; margin-top: -0.25rem; margin-bottom: 0.5rem;">
+                    {% if item.total_prod %}
+                    <div class="text-tiny" style="color: var(--primary-color);">
+                        <i class="fas fa-clock"></i> Productivity: ${{ item.total_prod|floatformat:0|intcomma }}
+                    </div>
+                    {% endif %}
+                    {% if item.total_rev %}
+                    <div class="text-tiny" style="color: #166534;">
+                        <i class="fas fa-chart-line"></i> Revenue: ${{ item.total_rev|floatformat:0|intcomma }}
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="text-tiny">Based on {{ item.count }} Initiatives</div>
             </div>
 
             <div class="benefit-card-footer">

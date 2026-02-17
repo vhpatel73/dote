@@ -7,11 +7,14 @@ class Initiative(models.Model):
         ('Claims', 'Claims'),
         ('Membership', 'Membership'),
         ('Travel', 'Travel'),
-        ('ERS', 'ERS'),
+        ('Automotive Services', 'Automotive Services'),
         ('D&R', 'D&R'),
         ('IT', 'IT'),
-        ('HR', 'HR'),
-        ('Others', 'Others'),
+        ('Human Resources', 'Human Resources'),
+        ('Experience Organization', 'Experience Organization'),
+        ('Data/Insight', 'Data/Insight'),
+        ('Finance & Procurement', 'Finance & Procurement'),
+        ('Field Operations', 'Field Operations'),
     ]
 
     STATUS_CHOICES = [
@@ -21,42 +24,62 @@ class Initiative(models.Model):
         ('Planning', 'Planning'),
     ]
 
+    BENEFIT_NAME_CHOICES = [
+        ('Productivity Gain', 'Productivity Gain'),
+        ('New Business', 'New Business'),
+    ]
+
+    name = models.CharField(max_length=32, default="Untitled Initiative")
     requester_name = models.CharField(max_length=32)
-    description = models.TextField(max_length=2048)
     lob_owner = models.CharField(max_length=32, verbose_name="LOB Owner")
+    description = models.TextField(max_length=2048)
     it_owner = models.CharField(max_length=32, verbose_name="IT Owner")
+    it_owner_email = models.EmailField(max_length=128, verbose_name="IT Owner Email", default="it@example.com")
     department = models.CharField(max_length=32, choices=DEPARTMENT_CHOICES)
     status = models.CharField(max_length=32, choices=STATUS_CHOICES)
     technology = models.CharField(max_length=32)
-    value = models.TextField(max_length=1024)
-    benefit_name = models.CharField(max_length=64)
-    benefit = models.FloatField()  # double in DB
+    value = models.TextField(max_length=1024, verbose_name="Business Value")
+    benefit_name = models.CharField(max_length=32, choices=BENEFIT_NAME_CHOICES)
+    
+    # New Multiplier Fields
+    kpi_name = models.CharField(max_length=64, blank=True, null=True, verbose_name="KPI Name", help_text="Name of the KPI to be tracked")
+    multiplier_minutes = models.FloatField(default=0, help_text="KPI x this = minutes saved")
+    multiplier_dollars = models.FloatField(default=0, help_text="Minutes saved x this = dollars saved")
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.requester_name} - {self.department} - {self.status}"
+        return f"{self.name} ({self.department})"
 
 class RealizedBenefit(models.Model):
-    BENEFIT_TYPE_CHOICES = [
-        ('Dollars saved', 'Dollars saved'),
-        ('Hours saved', 'Hours saved'),
-        ('Revenue increased', 'Revenue increased'),
-        ('Member Acquired', 'Member Acquired'),
-    ]
-
     initiative = models.ForeignKey(Initiative, on_delete=models.CASCADE, related_name='realized_benefits')
     month = models.DateField()
-    benefit_type = models.CharField(max_length=64, choices=BENEFIT_TYPE_CHOICES)
-    amount = models.FloatField()
+    
+    # KPI Tracking Fields
+    kpi_value = models.FloatField(default=0)
+    
+    # Manual Input (for New Business)
+    revenue_impact = models.FloatField(default=0)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def calculated_minutes(self):
+        if self.initiative.benefit_name == 'Productivity Gain':
+            return self.kpi_value * self.initiative.multiplier_minutes
+        return 0
+
+    @property
+    def calculated_dollars(self):
+        if self.initiative.benefit_name == 'Productivity Gain':
+            return self.kpi_value * self.initiative.multiplier_minutes * self.initiative.multiplier_dollars
+        return 0
 
     class Meta:
         ordering = ['-month']
-        unique_together = ('initiative', 'month', 'benefit_type')
+        unique_together = ('initiative', 'month')
 
     def __str__(self):
-        return f"{self.initiative.requester_name} - {self.month} - {self.benefit_type}"
+        return f"{self.initiative.name} - {self.month}"
