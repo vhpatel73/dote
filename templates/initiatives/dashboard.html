@@ -10,7 +10,7 @@
 </header>
 
 <div class="stats-grid">
-    <div class="stat-card glass">
+    <div class="stat-card glass clickable-card" onclick="window.location.href='{% url 'initiative_list' %}'">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">
                 <i class="fas fa-rocket"></i>
@@ -19,7 +19,7 @@
         </div>
         <div class="stat-value">{{ total_initiatives }}</div>
     </div>
-    <div class="stat-card glass">
+    <div class="stat-card glass clickable-card" onclick="window.location.href='{% url 'initiative_list' %}?q=Live'">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(234, 88, 12, 0.1); color: #ea580c;">
                 <i class="fas fa-signal"></i>
@@ -28,7 +28,8 @@
         </div>
         <div class="stat-value">{{ live_systems }}</div>
     </div>
-    <div class="stat-card glass">
+    <div class="stat-card glass clickable-card"
+        onclick="window.location.href='{% url 'initiative_list' %}?q=Productivity+Gain'">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">
                 <i class="fas fa-stopwatch-20"></i>
@@ -37,7 +38,8 @@
         </div>
         <div class="stat-value">${{ total_productivity|floatformat:2|intcomma }}</div>
     </div>
-    <div class="stat-card glass">
+    <div class="stat-card glass clickable-card"
+        onclick="window.location.href='{% url 'initiative_list' %}?q=New+Business'">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(22, 101, 52, 0.1); color: #166534;">
                 <i class="fas fa-chart-line"></i>
@@ -46,7 +48,7 @@
         </div>
         <div class="stat-value">${{ total_revenue|floatformat:2|intcomma }}</div>
     </div>
-    <div class="stat-card glass">
+    <div class="stat-card glass clickable-card" onclick="window.location.href='{% url 'initiative_list' %}'">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(142, 36, 170, 0.1); color: var(--secondary-color);">
                 <i class="fas fa-vault"></i>
@@ -98,6 +100,17 @@
         font-size: 0.7rem !important;
         font-weight: 700;
         white-space: nowrap;
+    }
+
+    .clickable-card {
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+
+    .clickable-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        border-color: var(--primary-color) !important;
     }
 </style>
 

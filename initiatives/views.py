@@ -1,15 +1,15 @@
-import csv
 import io
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView, UpdateView, DetailView, View
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
-from django.db.models import Sum, Count, F, ExpressionWrapper, FloatField
+from django.db.models import Sum, Count, F, ExpressionWrapper, FloatField, Q
 import json
 from .models import Initiative, RealizedBenefit
 from datetime import datetime
 import pandas as pd
+import csv
 
 class DashboardView(View):
     def get(self, request):
@@ -59,6 +59,10 @@ class DashboardView(View):
         }
         return render(request, 'initiatives/dashboard.html', context)
 
+
+
+from django.db.models.functions import Coalesce
+
 class InitiativeListView(ListView):
     model = Initiative
     context_object_name = 'initiatives'
@@ -67,9 +71,37 @@ class InitiativeListView(ListView):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        
+        # Annotate with calculated benefits
+        queryset = queryset.annotate(
+            total_productivity=Coalesce(Sum(
+                F('realized_benefits__kpi_value') * 
+                F('multiplier_minutes') * 
+                F('multiplier_dollars'),
+                output_field=FloatField()
+            ), 0.0),
+            total_revenue=Coalesce(Sum(
+                'realized_benefits__revenue_impact',
+                output_field=FloatField()
+            ), 0.0)
+        )
+        
+        # Search filter
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(name__icontains=query) |
+                Q(department__icontains=query) |
+                Q(status__icontains=query) |
+                Q(technology__icontains=query) |
+                Q(benefit_name__icontains=query)
+            )
+            
+        # Existing department filter
         dept = self.request.GET.get('department')
         if dept:
             queryset = queryset.filter(department=dept)
+            
         return queryset
 
 class InitiativeCreateView(CreateView):
