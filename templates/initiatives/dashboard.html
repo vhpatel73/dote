@@ -115,104 +115,234 @@
         box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
         border-color: var(--primary-color) !important;
     }
+
+    /* Tab styles */
+    .tab-container {
+        margin-top: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .tab-nav {
+        display: flex;
+        gap: 0.5rem;
+        margin: 0 auto 1.5rem auto;
+        padding: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        width: fit-content;
+    }
+
+    .tab-btn {
+        background: transparent;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-secondary);
+    }
+
+    .tab-btn.active {
+        background: white;
+        color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .tab-pane {
+        display: none;
+    }
+
+    .tab-pane.active {
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+    }
+
+    .dashboard-table-container {
+        flex: 1.2;
+    }
+
+    .dashboard-chart-container {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .analytic-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+    }
+
+    .analytic-table th {
+        text-align: left;
+        padding: 0.75rem 1rem;
+        color: var(--text-secondary);
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .analytic-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .analytic-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    @media (max-width: 992px) {
+        .tab-pane.active {
+            flex-direction: column-reverse;
+        }
+    }
+
+    .drill-down-link {
+        color: var(--text-primary);
+        text-decoration: none;
+        transition: color 0.2s;
+        cursor: pointer;
+    }
+
+    .drill-down-link:hover {
+        color: var(--primary-color);
+        text-decoration: underline;
+    }
 </style>
 
-<div class="grid" style="margin-bottom: 3rem;">
-    <!-- Donut Charts -->
-    <div class="card glass">
-        <h3 style="text-align: center;">Functional View</h3>
-        {% if total_initiatives > 0 %}
-        <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
-            <canvas id="deptChart"></canvas>
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <div class="chart-pulse"></div>
-            <p>Nothing to report yet...</p>
-        </div>
-        {% endif %}
+<div class="card glass tab-container">
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('func')">Functional View</button>
+        <button class="tab-btn" onclick="switchTab('status')">Status View</button>
+        <button class="tab-btn" onclick="switchTab('tech')">Technology View</button>
     </div>
-    <div class="card glass">
-        <h3 style="text-align: center;">Status View</h3>
-        {% if total_initiatives > 0 %}
-        <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
-            <canvas id="statusChart"></canvas>
+
+    <!-- Functional Pane -->
+    <div id="pane-func" class="tab-pane active">
+        <div class="dashboard-table-container">
+            <table class="analytic-table">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th style="text-align: center;">Count</th>
+                        <th style="text-align: right;">Prod. Gain ($)</th>
+                        <th style="text-align: right;">Rev. Impact ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in dept_stats %}
+                    <tr>
+                        <td style="font-weight: 700;">
+                            <a href="{% url 'initiative_list' %}?q={{ item.department|urlencode }}"
+                                class="drill-down-link">
+                                {{ item.department }}
+                            </a>
+                        </td>
+                        <td style="text-align: center;"><span class="badge"
+                                style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">{{item.count}}</span>
+                        </td>
+                        <td style="text-align: right; color: var(--primary-color); font-weight: 600;">
+                            ${{item.prod_gain|floatformat:0|intcomma}}</td>
+                        <td style="text-align: right; color: #34A853; font-weight: 600;">
+                            ${{item.rev_impact|floatformat:0|intcomma}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% else %}
-        <div class="empty-state">
-            <div class="ai-eye"></div>
-            <p>Feeling lonely, enter one entry!</p>
+        <div class="dashboard-chart-container">
+            <div style="height: 300px; width: 100%;">
+                <canvas id="deptChart"></canvas>
+            </div>
         </div>
-        {% endif %}
     </div>
-    <div class="card glass">
-        <h3 style="text-align: center;">Technology View</h3>
-        {% if total_initiatives > 0 %}
-        <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
-            <canvas id="techChart"></canvas>
+
+    <!-- Status Pane -->
+    <div id="pane-status" class="tab-pane">
+        <div class="dashboard-table-container">
+            <table class="analytic-table">
+                <thead>
+                    <tr>
+                        <th>Status</th>
+                        <th style="text-align: center;">Count</th>
+                        <th style="text-align: right;">Prod. Gain ($)</th>
+                        <th style="text-align: right;">Rev. Impact ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in status_stats %}
+                    <tr>
+                        <td style="font-weight: 700;">
+                            <a href="{% url 'initiative_list' %}?q={{ item.status|urlencode }}" class="drill-down-link">
+                                {{ item.status }}
+                            </a>
+                        </td>
+                        <td style="text-align: center;"><span class="badge"
+                                style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">{{item.count}}</span>
+                        </td>
+                        <td style="text-align: right; color: var(--primary-color); font-weight: 600;">
+                            ${{item.prod_gain|floatformat:0|intcomma}}</td>
+                        <td style="text-align: right; color: #34A853; font-weight: 600;">
+                            ${{item.rev_impact|floatformat:0|intcomma}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        {% else %}
-        <div class="empty-state">
-            <div class="chart-pulse" style="--secondary-color: var(--primary-color)"></div>
-            <p>Waiting for the first AI spark...</p>
+        <div class="dashboard-chart-container">
+            <div style="height: 300px; width: 100%;">
+                <canvas id="statusChart"></canvas>
+            </div>
         </div>
-        {% endif %}
+    </div>
+
+    <!-- Tech Pane -->
+    <div id="pane-tech" class="tab-pane">
+        <div class="dashboard-table-container">
+            <table class="analytic-table">
+                <thead>
+                    <tr>
+                        <th>Technology</th>
+                        <th style="text-align: center;">Count</th>
+                        <th style="text-align: right;">Prod. Gain ($)</th>
+                        <th style="text-align: right;">Rev. Impact ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in tech_stats %}
+                    <tr>
+                        <td style="font-weight: 700;">
+                            <a href="{% url 'initiative_list' %}?q={{ item.technology|urlencode }}"
+                                class="drill-down-link">
+                                {{ item.technology }}
+                            </a>
+                        </td>
+                        <td style="text-align: center;"><span class="badge"
+                                style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">{{item.count}}</span>
+                        </td>
+                        <td style="text-align: right; color: var(--primary-color); font-weight: 600;">
+                            ${{item.prod_gain|floatformat:0|intcomma}}</td>
+                        <td style="text-align: right; color: #34A853; font-weight: 600;">
+                            ${{item.rev_impact|floatformat:0|intcomma}}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="dashboard-chart-container">
+            <div style="height: 300px; width: 100%;">
+                <canvas id="techChart"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
-<div style="margin-top: 3rem;">
-    <h3>Realized Benefit by <span class="gradient-text">Department</span></h3>
-
-    <div class="benefit-deck">
-        {% for item in benefit_by_dept %}
-        <div class="card glass benefit-card">
-            <div class="benefit-card-header">
-                <div class="dept-icon">
-                    {{ item.initiative__department|slice:":1"|upper }}
-                </div>
-                <div>
-                    <div style="font-weight: 700; font-size: 1.1rem; color: var(--text-primary);">
-                        {{ item.initiative__department }}
-                    </div>
-                    <div class="stat-label" style="font-size: 0.6rem;">Estimated Realized Value</div>
-                </div>
-            </div>
-
-            <div class="benefit-card-body">
-                <div class="benefit-value-large">
-                    ${{ item.total|floatformat:2|intcomma }}
-                </div>
-                <div style="display: flex; gap: 1rem; margin-top: -0.25rem; margin-bottom: 0.5rem;">
-                    {% if item.total_prod %}
-                    <div class="text-tiny" style="color: var(--primary-color);">
-                        <i class="fas fa-clock"></i> Productivity: ${{ item.total_prod|floatformat:0|intcomma }}
-                    </div>
-                    {% endif %}
-                    {% if item.total_rev %}
-                    <div class="text-tiny" style="color: #166534;">
-                        <i class="fas fa-chart-line"></i> Revenue: ${{ item.total_rev|floatformat:0|intcomma }}
-                    </div>
-                    {% endif %}
-                </div>
-                <div class="text-tiny">Based on {{ item.count }} Initiatives</div>
-            </div>
-
-            <div class="benefit-card-footer">
-                <button class="btn-secondary" style="justify-content: center;"
-                    onclick="showBreakdown('{{ item.initiative__department }}')">
-                    View Breakdown <i class="fas fa-arrow-right" style="font-size: 0.8rem; margin-left: 0.5rem;"></i>
-                </button>
-            </div>
-        </div>
-        {% empty %}
-        <div class="card glass" style="grid-column: 1 / -1; text-align: center; padding: 3rem;">
-            <div class="empty-state">
-                <p>No benefit data available. Start by recording a monthly benefit.</p>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
-</div>
 
 {% endblock %}
 
@@ -222,13 +352,35 @@
 {{ tech_data|json_script:"tech-data" }}
 
 <script>
+    function switchTab(type) {
+        // Toggle buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.textContent.toLowerCase().includes(type)) btn.classList.add('active');
+        });
+
+        // Toggle panes
+        document.querySelectorAll('.tab-pane').forEach(pane => {
+            pane.classList.remove('active');
+        });
+        document.getElementById('pane-' + type).classList.add('active');
+    }
+
     // Chart Color Palette
     const COLORS = [
-        '#007AFF', '#8E24AA', '#00C7BE', '#FF9500', '#FF3B30',
-        '#5856D6', '#AF52DE', '#FF2D55', '#34C759', '#5AC8FA'
+        '#4285F4', // Google Blue
+        '#34A853', // Google Green
+        '#FBBC05', // Google Yellow
+        '#EA4335', // Google Red
+        '#8F00FF', // Purple
+        '#00C7BE', // Teal
+        '#FF9500', // Orange
+        '#5856D6', // Indigo
+        '#AF52DE', // Pink
+        '#5AC8FA'  // Sky
     ];
 
-    function createChart(id, labels, data, title) {
+    function createChart(id, labels, data) {
         const ctx = document.getElementById(id);
         if (!ctx) return;
 
@@ -245,6 +397,8 @@
             },
             options: {
                 cutout: '70%',
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: {
                     legend: {
                         position: 'bottom',
@@ -265,26 +419,17 @@
         function getJsonData(id) {
             var el = document.getElementById(id);
             if (!el) return null;
-            try {
-                return JSON.parse(el.textContent);
-            } catch (e) {
-                return null;
-            }
+            try { return JSON.parse(el.textContent); }
+            catch (e) { return null; }
         }
 
         var deptData = getJsonData('dept-data');
         var statusData = getJsonData('status-data');
         var techData = getJsonData('tech-data');
 
-        if (deptData && deptData.labels && deptData.labels.length > 0) {
-            createChart('deptChart', deptData.labels, deptData.counts, 'Department Distribution');
-        }
-        if (statusData && statusData.labels && statusData.labels.length > 0) {
-            createChart('statusChart', statusData.labels, statusData.counts, 'Status Distribution');
-        }
-        if (techData && techData.labels && techData.labels.length > 0) {
-            createChart('techChart', techData.labels, techData.counts, 'Technology Distribution');
-        }
+        if (deptData) createChart('deptChart', deptData.labels, deptData.counts);
+        if (statusData) createChart('statusChart', statusData.labels, statusData.counts);
+        if (techData) createChart('techChart', techData.labels, techData.counts);
     })();
     {% endif %}
 

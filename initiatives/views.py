@@ -16,44 +16,57 @@ class DashboardView(View):
     def get(self, request):
         initiatives = Initiative.objects.all()
         
-        # Aggregations
-        dept_stats = list(initiatives.values('department').annotate(count=Count('id')).order_by('department'))
-        status_stats = list(initiatives.values('status').annotate(count=Count('id')).order_by('status'))
-        tech_stats = list(initiatives.values('technology').annotate(count=Count('id')).order_by('technology'))
+        # Helper for common annotations
+        prod_gain_expr = Coalesce(Sum(
+            F('realized_benefits__kpi_value') * 
+            F('multiplier_minutes') * 
+            F('multiplier_dollars'),
+            output_field=FloatField()
+        ), 0.0)
         
-        # New Aggregations for Benefits (Calculated on the fly)
-        productivity_dollars = RealizedBenefit.objects.filter(
+        rev_impact_expr = Coalesce(Sum('realized_benefits__revenue_impact'), 0.0)
+
+        # 1. Functional View (Department)
+        dept_stats = list(initiatives.values('department').annotate(
+            count=Count('id', distinct=True),
+            prod_gain=prod_gain_expr,
+            rev_impact=rev_impact_expr
+        ).order_by('department'))
+
+        # 2. Status View
+        status_stats = list(initiatives.values('status').annotate(
+            count=Count('id', distinct=True),
+            prod_gain=prod_gain_expr,
+            rev_impact=rev_impact_expr
+        ).order_by('status'))
+
+        # 3. Technology View
+        tech_stats = list(initiatives.values('technology').annotate(
+            count=Count('id', distinct=True),
+            prod_gain=prod_gain_expr,
+            rev_impact=rev_impact_expr
+        ).order_by('technology'))
+        
+        # High-level Totals
+        total_productivity = RealizedBenefit.objects.filter(
             initiative__benefit_name='Productivity Gain'
         ).aggregate(
             total=Sum(F('kpi_value') * F('initiative__multiplier_minutes') * F('initiative__multiplier_dollars'))
         )['total'] or 0
         
-        revenue_impact = RealizedBenefit.objects.filter(
+        total_revenue = RealizedBenefit.objects.filter(
             initiative__benefit_name='New Business'
         ).aggregate(Sum('revenue_impact'))['revenue_impact__sum'] or 0
         
-        # Breakdown by Department (Summing both types of benefits)
-        benefit_by_dept = list(RealizedBenefit.objects.values('initiative__department')
-                               .annotate(
-                                   total_prod=Sum(F('kpi_value') * F('initiative__multiplier_minutes') * F('initiative__multiplier_dollars')),
-                                   total_rev=Sum('revenue_impact'),
-                                   count=Count('initiative', distinct=True)
-                               ).order_by('initiative__department'))
-        
-        # Inject combined total for the UI
-        for item in benefit_by_dept:
-            item['total'] = (item['total_prod'] or 0) + (item['total_rev'] or 0)
-        
         context = {
             'total_initiatives': initiatives.count(),
-            'total_productivity': productivity_dollars,
-            'total_revenue': revenue_impact,
-            'total_overall': productivity_dollars + revenue_impact,
+            'total_productivity': total_productivity,
+            'total_revenue': total_revenue,
+            'total_overall': float(total_productivity) + float(total_revenue),
             'live_systems': initiatives.filter(status='Live').count(),
             'dept_stats': dept_stats,
             'status_stats': status_stats,
             'tech_stats': tech_stats,
-            'benefit_by_dept': benefit_by_dept,
             'dept_data': {'labels': [i['department'] for i in dept_stats], 'counts': [i['count'] for i in dept_stats]},
             'status_data': {'labels': [i['status'] for i in status_stats], 'counts': [i['count'] for i in status_stats]},
             'tech_data': {'labels': [i['technology'] for i in tech_stats], 'counts': [i['count'] for i in tech_stats]},
@@ -144,10 +157,20 @@ class InitiativeListView(ListView):
                 Q(benefit_name__icontains=query)
             )
             
-        # Existing department filter
+        # Department filter
         dept = self.request.GET.get('department')
         if dept:
             queryset = queryset.filter(department=dept)
+            
+        # Status filter
+        status = self.request.GET.get('status')
+        if status:
+            queryset = queryset.filter(status=status)
+            
+        # Technology filter
+        tech = self.request.GET.get('technology')
+        if tech:
+            queryset = queryset.filter(technology=tech)
             
         return queryset
 

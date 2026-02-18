@@ -15,7 +15,11 @@
             </div>
             <button type="submit" class="btn-primary" style="padding: 0.75rem 1.25rem;">Filter</button>
             {% if request.GET.q %}
-            <a href="{% url 'initiative_list' %}" class="btn-secondary" style="padding: 0.75rem;">Clear</a>
+            <a href="{% url 'initiative_list' %}" class="btn-secondary"
+                style="padding: 0.75rem; border-radius: 12px; display: flex; align-items: center; justify-content: center;"
+                title="Clear Search">
+                <i class="fas fa-times-circle"></i>
+            </a>
             {% endif %}
         </form>
     </div>
