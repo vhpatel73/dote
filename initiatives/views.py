@@ -172,6 +172,19 @@ class InitiativeListView(ListView):
         if tech:
             queryset = queryset.filter(technology=tech)
             
+        # Sorting
+        sort = self.request.GET.get('sort')
+        if sort == 'name':
+            queryset = queryset.order_by('name')
+        elif sort == '-name':
+            queryset = queryset.order_by('-name')
+        elif sort == 'dept':
+            queryset = queryset.order_by('department')
+        elif sort == '-dept':
+            queryset = queryset.order_by('-department')
+        else:
+            queryset = queryset.order_by('-created_at') # Default sort
+            
         return queryset
 
 class InitiativeCreateView(CreateView):
