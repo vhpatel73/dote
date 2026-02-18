@@ -5,6 +5,7 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.db.models import Sum, Count, F, ExpressionWrapper, FloatField, Q
+from django.db.models.functions import TruncMonth, Coalesce
 import json
 from .models import Initiative, RealizedBenefit
 from datetime import datetime
@@ -58,6 +59,52 @@ class DashboardView(View):
             'tech_data': {'labels': [i['technology'] for i in tech_stats], 'counts': [i['count'] for i in tech_stats]},
         }
         return render(request, 'initiatives/dashboard.html', context)
+
+class BenefitAnalysisView(View):
+    def get(self, request):
+        # 1. Monthly Data for Stacked Bar Chart
+        monthly_stats = RealizedBenefit.objects.annotate(
+            month_trunc=TruncMonth('month')
+        ).values('month_trunc').annotate(
+            prod_gain=Coalesce(Sum(F('kpi_value') * F('initiative__multiplier_minutes') * F('initiative__multiplier_dollars')), 0.0),
+            rev_impact=Coalesce(Sum('revenue_impact'), 0.0)
+        ).order_by('month_trunc')
+
+        labels = [stat['month_trunc'].strftime('%b %Y') for stat in monthly_stats]
+        prod_data = [float(stat['prod_gain']) for stat in monthly_stats]
+        rev_data = [float(stat['rev_impact']) for stat in monthly_stats]
+
+        # 2. Tabular Data - Group by Initiative
+        initiative_stats = RealizedBenefit.objects.values(
+            'initiative__name', 
+            'initiative__department'
+        ).annotate(
+            prod_gain=Coalesce(Sum(F('kpi_value') * F('initiative__multiplier_minutes') * F('initiative__multiplier_dollars')), 0.0),
+            rev_impact=Coalesce(Sum('revenue_impact'), 0.0)
+        ).annotate(
+            total_impact=F('prod_gain') + F('rev_impact')
+        )
+
+        # Dynamic sorting based on parameter
+        sort_by = request.GET.get('sort', 'total')
+        if sort_by == 'prod':
+            initiative_stats = initiative_stats.order_by('-prod_gain')
+        elif sort_by == 'rev':
+            initiative_stats = initiative_stats.order_by('-rev_impact')
+        else:
+            initiative_stats = initiative_stats.order_by('-total_impact')
+
+        context = {
+            'chart_data': {
+                'labels': labels,
+                'prod_data': prod_data,
+                'rev_data': rev_data,
+            },
+            'table_by_month': monthly_stats,
+            'table_by_initiative': list(initiative_stats),
+            'active_tab': request.GET.get('tab', 'month'),
+        }
+        return render(request, 'initiatives/benefit_analysis.html', context)
 
 
 

@@ -29,7 +29,7 @@
         <div class="stat-value">{{ live_systems }}</div>
     </div>
     <div class="stat-card glass clickable-card"
-        onclick="location.href='{% url 'initiative_list' %}?q=Productivity+Gain';">
+        onclick="location.href='{% url 'benefit_analysis' %}?tab=initiative&sort=prod';">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(251, 188, 5, 0.1); color: #FBBC05;">
                 <i class="fas fa-stopwatch"></i>
@@ -39,7 +39,8 @@
         <div class="stat-value">${{ total_productivity|floatformat:2|intcomma }}</div>
         <span class="text-tiny">Since Inception</span>
     </div>
-    <div class="stat-card glass clickable-card" onclick="location.href='{% url 'initiative_list' %}?q=New+Business';">
+    <div class="stat-card glass clickable-card"
+        onclick="location.href='{% url 'benefit_analysis' %}?tab=initiative&sort=rev';">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(234, 67, 53, 0.1); color: #EA4335;">
                 <i class="fas fa-money-bill-wave"></i>
@@ -49,7 +50,7 @@
         <div class="stat-value">${{ total_revenue|floatformat:2|intcomma }}</div>
         <span class="text-tiny">Since Inception</span>
     </div>
-    <div class="stat-card glass clickable-card" onclick="location.href='{% url 'initiative_list' %}';">
+    <div class="stat-card glass clickable-card" onclick="location.href='{% url 'benefit_analysis' %}?tab=month';">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;">
                 <i class="fas fa-signal"></i>
@@ -119,9 +120,9 @@
 <div class="grid" style="margin-bottom: 3rem;">
     <!-- Donut Charts -->
     <div class="card glass">
-        <h3 style="text-align: center;">Initiatives by Department</h3>
+        <h3 style="text-align: center;">Functional View</h3>
         {% if total_initiatives > 0 %}
-        <div style="height: 250px; position: relative;">
+        <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
             <canvas id="deptChart"></canvas>
         </div>
         {% else %}
@@ -132,9 +133,9 @@
         {% endif %}
     </div>
     <div class="card glass">
-        <h3 style="text-align: center;">Initiatives by Status</h3>
+        <h3 style="text-align: center;">Status View</h3>
         {% if total_initiatives > 0 %}
-        <div style="height: 250px; position: relative;">
+        <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
             <canvas id="statusChart"></canvas>
         </div>
         {% else %}
@@ -145,9 +146,9 @@
         {% endif %}
     </div>
     <div class="card glass">
-        <h3 style="text-align: center;">Initiatives by Technology</h3>
+        <h3 style="text-align: center;">Technology View</h3>
         {% if total_initiatives > 0 %}
-        <div style="height: 250px; position: relative;">
+        <div style="height: 250px; position: relative; display: flex; justify-content: center; align-items: center;">
             <canvas id="techChart"></canvas>
         </div>
         {% else %}

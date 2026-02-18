@@ -1,0 +1,257 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<header style="margin-bottom: 2rem;">
+    <h1>Monthly <span class="gradient-text">Trends</span></h1>
+    <p class="stat-label" style="font-size: 0.7rem; margin-top: -0.5rem;">Time-series analysis of realized AI value.</p>
+</header>
+
+<div class="card glass" style="margin-bottom: 3rem; padding: 2rem;">
+    <h3 style="text-align: center; margin-bottom: 2rem;">Productivity vs Revenue Impact</h3>
+    <div style="height: 400px; position: relative; display: flex; justify-content: center; align-items: center;">
+        <canvas id="trendChart"></canvas>
+    </div>
+</div>
+
+<div class="card glass" style="padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h3>Detailed Breakdown</h3>
+        <div class="toggle-switch">
+            <button id="btnMonth" class="btn-toggle active" onclick="switchTable('month')">By Month</button>
+            <button id="btnInitiative" class="btn-toggle" onclick="switchTable('initiative')">By Initiative</button>
+        </div>
+    </div>
+
+    <div id="tableMonth">
+        <table class="trend-table">
+            <thead>
+                <tr>
+                    <th>Month</th>
+                    <th style="text-align: right;">Productivity Gain ($)</th>
+                    <th style="text-align: right;">Revenue Impact ($)</th>
+                    <th style="text-align: right;">Total Impact ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in table_by_month %}
+                <tr>
+                    <td style="font-weight: 600;">{{ stat.month_trunc|date:"F Y" }}</td>
+                    <td style="text-align: right; color: var(--primary-color);">
+                        ${{ stat.prod_gain|floatformat:2|intcomma }}
+                    </td>
+                    <td style="text-align: right; color: #34A853;">
+                        ${{ stat.rev_impact|floatformat:2|intcomma }}
+                    </td>
+                    <td style="text-align: right; font-weight: 700; color: #8F00FF;">
+                        ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div id="tableInitiative" style="display: none;">
+        <table class="trend-table">
+            <thead>
+                <tr>
+                    <th>Initiative Name</th>
+                    <th>Department</th>
+                    <th style="text-align: right;">Productivity Gain ($)</th>
+                    <th style="text-align: right;">Revenue Impact ($)</th>
+                    <th style="text-align: right;">Total Impact ($)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stat in table_by_initiative %}
+                <tr>
+                    <td style="font-weight: 600;">{{ stat.initiative__name }}</td>
+                    <td><span class="badge">{{ stat.initiative__department }}</span></td>
+                    <td style="text-align: right; color: var(--primary-color);">
+                        ${{ stat.prod_gain|floatformat:2|intcomma }}
+                    </td>
+                    <td style="text-align: right; color: #34A853;">
+                        ${{ stat.rev_impact|floatformat:2|intcomma }}
+                    </td>
+                    <td style="text-align: right; font-weight: 700; color: #8F00FF;">
+                        ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .trend-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .trend-table th {
+        text-align: left;
+        padding: 1rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .trend-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    .toggle-switch {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 4px;
+        display: flex;
+        gap: 4px;
+    }
+
+    .btn-toggle {
+        border: none;
+        background: transparent;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-secondary);
+    }
+
+    .btn-toggle.active {
+        background: white;
+        color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .badge {
+        background: rgba(0, 122, 255, 0.1);
+        color: var(--primary-color);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+</style>
+
+{% endblock %}
+
+{% block extra_js %}
+{{ chart_data|json_script:"chart-data" }}
+<script>
+    function initChart() {
+        var el = document.getElementById('chart-data');
+        if (!el) return;
+        var data = JSON.parse(el.textContent);
+        var ctx = document.getElementById('trendChart');
+        if (!ctx) return;
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [
+                    {
+                        label: 'Productivity Gain ($)',
+                        data: data.prod_data,
+                        backgroundColor: '#4285F4', // Google Blue
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Revenue Impact ($)',
+                        data: data.rev_data,
+                        backgroundColor: '#34A853', // Google Green
+                        borderRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { family: 'Inter', size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function switchTable(type) {
+        var btnMonth = document.getElementById('btnMonth');
+        var btnInitiative = document.getElementById('btnInitiative');
+        var tableMonth = document.getElementById('tableMonth');
+        var tableInitiative = document.getElementById('tableInitiative');
+
+        if (type === 'month') {
+            btnMonth.className = 'btn-toggle active';
+            btnInitiative.className = 'btn-toggle';
+            tableMonth.style.display = 'block';
+            tableInitiative.style.display = 'none';
+        } else {
+            btnInitiative.className = 'btn-toggle active';
+            btnMonth.className = 'btn-toggle';
+            tableInitiative.style.display = 'block';
+            tableMonth.style.display = 'none';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initChart();
+        var initialTab = "{{ active_tab|default:'month' }}";
+        switchTable(initialTab);
+    });
+</script>
+{% endblock %}
