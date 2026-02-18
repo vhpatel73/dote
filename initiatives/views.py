@@ -57,6 +57,28 @@ class DashboardView(View):
         total_revenue = RealizedBenefit.objects.filter(
             initiative__benefit_name='New Business'
         ).aggregate(Sum('revenue_impact'))['revenue_impact__sum'] or 0
+
+        # Shared Color Palette for UI Consistency
+        COLORS = [
+            '#4285F4', # Google Blue
+            '#34A853', # Google Green
+            '#FBBC05', # Google Yellow
+            '#EA4335', # Google Red
+            '#8F00FF', # Purple
+            '#00C7BE', # Teal
+            '#FF9500', # Orange
+            '#5856D6', # Indigo
+            '#AF52DE', # Pink
+            '#5AC8FA'  # Sky
+        ]
+        
+        # Attach colors to stats for template use
+        for i, item in enumerate(dept_stats):
+            item['color'] = COLORS[i % len(COLORS)]
+        for i, item in enumerate(status_stats):
+            item['color'] = COLORS[i % len(COLORS)]
+        for i, item in enumerate(tech_stats):
+            item['color'] = COLORS[i % len(COLORS)]
         
         context = {
             'total_initiatives': initiatives.count(),
@@ -70,6 +92,7 @@ class DashboardView(View):
             'dept_data': {'labels': [i['department'] for i in dept_stats], 'counts': [i['count'] for i in dept_stats]},
             'status_data': {'labels': [i['status'] for i in status_stats], 'counts': [i['count'] for i in status_stats]},
             'tech_data': {'labels': [i['technology'] for i in tech_stats], 'counts': [i['count'] for i in tech_stats]},
+            'COLORS': COLORS,
         }
         return render(request, 'initiatives/dashboard.html', context)
 

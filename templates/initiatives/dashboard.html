@@ -4,7 +4,7 @@
 
 {% block content %}
 <header style="margin-bottom: 2rem;">
-    <h1>Value <span class="gradient-text">Dashboard</span></h1>
+    <h2>Value <span class="gradient-text">Dashboard</span></h2>
     <p class="stat-label" style="font-size: 0.7rem; margin-top: -0.5rem;">AI initiatives At A Glance and realized
         values.</p>
 </header>
@@ -43,7 +43,7 @@
         onclick="location.href='{% url 'benefit_analysis' %}?tab=initiative&sort=rev';">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(234, 67, 53, 0.1); color: #EA4335;">
-                <i class="fas fa-money-bill-wave"></i>
+                <i class="fas fa-file-invoice"></i>
             </div>
             <div class="stat-label">Revenue Impact ($)</div>
         </div>
@@ -214,6 +214,15 @@
         color: var(--primary-color);
         text-decoration: underline;
     }
+
+    .color-dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 8px;
+        flex-shrink: 0;
+    }
 </style>
 
 <div class="card glass tab-container">
@@ -239,10 +248,13 @@
                     {% for item in dept_stats %}
                     <tr>
                         <td style="font-weight: 700;">
-                            <a href="{% url 'initiative_list' %}?q={{ item.department|urlencode }}"
-                                class="drill-down-link">
-                                {{ item.department }}
-                            </a>
+                            <div style="display: flex; align-items: center;">
+                                <span class="color-dot" style="background-color: {{ item.color }};"></span>
+                                <a href="{% url 'initiative_list' %}?q={{ item.department|urlencode }}"
+                                    class="drill-down-link">
+                                    {{ item.department }}
+                                </a>
+                            </div>
                         </td>
                         <td style="text-align: center;"><span class="badge"
                                 style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">{{item.count}}</span>
@@ -279,9 +291,13 @@
                     {% for item in status_stats %}
                     <tr>
                         <td style="font-weight: 700;">
-                            <a href="{% url 'initiative_list' %}?q={{ item.status|urlencode }}" class="drill-down-link">
-                                {{ item.status }}
-                            </a>
+                            <div style="display: flex; align-items: center;">
+                                <span class="color-dot" style="background-color: {{ item.color }};"></span>
+                                <a href="{% url 'initiative_list' %}?q={{ item.status|urlencode }}"
+                                    class="drill-down-link">
+                                    {{ item.status }}
+                                </a>
+                            </div>
                         </td>
                         <td style="text-align: center;"><span class="badge"
                                 style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">{{item.count}}</span>
@@ -318,10 +334,13 @@
                     {% for item in tech_stats %}
                     <tr>
                         <td style="font-weight: 700;">
-                            <a href="{% url 'initiative_list' %}?q={{ item.technology|urlencode }}"
-                                class="drill-down-link">
-                                {{ item.technology }}
-                            </a>
+                            <div style="display: flex; align-items: center;">
+                                <span class="color-dot" style="background-color: {{ item.color }};"></span>
+                                <a href="{% url 'initiative_list' %}?q={{ item.technology|urlencode }}"
+                                    class="drill-down-link">
+                                    {{ item.technology }}
+                                </a>
+                            </div>
                         </td>
                         <td style="text-align: center;"><span class="badge"
                                 style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">{{item.count}}</span>
@@ -401,12 +420,7 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20,
-                            font: { family: 'Inter', size: 12 }
-                        }
+                        display: false
                     }
                 }
             }
