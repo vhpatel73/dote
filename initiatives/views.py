@@ -438,6 +438,9 @@ class WebhookDocsView(View):
         initiative = None
         if pk:
             initiative = get_object_or_404(Initiative, pk=pk)
+            # Generate the webhook_key dynamically if it hasn't been set yet
+            if not initiative.webhook_key:
+                initiative.save()
         
         base_url = request.build_absolute_uri('/')[:-1]
         webhook_url = base_url + reverse('webhook_report')

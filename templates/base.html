@@ -39,13 +39,25 @@
         <div class="nav-links">
             <a href="{% url 'dashboard' %}" class="btn-text">Dashboard</a>
             <a href="{% url 'benefit_analysis' %}" class="btn-text">Trends</a>
-            <a href="{% url 'initiative_list' %}" class="btn-text">Initiatives</a>
-            <a href="{% url 'webhook_docs' %}" class="btn-text" title="API Webhook Documentation">
-                <i class="fas fa-plug"></i> API
-            </a>
-            <a href="{% url 'initiative_create' %}" class="btn-primary">
-                <i class="fas fa-plus"></i> New Initiative
-            </a>
+
+            <div class="dropdown">
+                <a href="#" class="btn-text dropdown-toggle" aria-haspopup="true" aria-expanded="false">
+                    Inventory <i class="fas fa-chevron-down" style="font-size: 0.8em; margin-left: 0.25rem;"></i>
+                </a>
+                <div class="dropdown-menu glass">
+                    <a href="{% url 'initiative_list' %}" class="dropdown-item">
+                        <i class="fas fa-list"></i> Initiatives List
+                    </a>
+                    <a href="{% url 'initiative_create' %}" class="dropdown-item"
+                        style="color: white; font-weight: 700;">
+                        <i class="fas fa-plus"></i> New Initiative
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="{% url 'webhook_docs' %}" class="dropdown-item" title="API Webhook Documentation">
+                        <i class="fas fa-plug"></i> API Specs
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
 
@@ -68,10 +80,6 @@
                 ACG - AI Value Board | Office of CTO & CFO
             </div>
             <div class="footer-links">
-                <a href="{% url 'webhook_docs' %}"
-                    style="color: var(--text-secondary); text-decoration: none; font-size: 0.75rem;">
-                    <i class="fas fa-book"></i> API Documentation
-                </a>
                 {% block footer_links %}{% endblock %}
             </div>
         </div>
@@ -95,6 +103,101 @@
             color: var(--primary-color);
         }
 
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            padding: 0;
+            font-family: inherit;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 1rem;
+            min-width: 200px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            padding: 0.5rem;
+            z-index: 1000;
+            flex-direction: column;
+            gap: 0.25rem;
+            background: #1a52da;
+            /* Matches nav background */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .dropdown-menu.show {
+            display: flex;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: rgba(255, 255, 255, 0.8) !important;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.2s, color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white !important;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 0.25rem 0;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+                padding-top: 1rem;
+            }
+
+            .dropdown {
+                width: 100%;
+            }
+
+            .dropdown-toggle {
+                width: 100%;
+                justify-content: space-between;
+                padding: 0.5rem 0;
+            }
+
+            .dropdown-menu {
+                position: static;
+                box-shadow: none;
+                background: transparent;
+                border: none;
+                margin-top: 0.5rem;
+                padding-left: 1rem;
+                padding-right: 0;
+            }
+
+            .dropdown-item {
+                padding: 0.5rem 0;
+            }
+        }
+
         .messages {
             margin-bottom: 2rem;
         }
@@ -105,6 +208,30 @@
             margin-bottom: 0.5rem;
         }
     </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropdownToggle = document.querySelector('.dropdown-toggle');
+            const dropdownMenu = document.querySelector('.dropdown-menu');
+
+            if (dropdownToggle && dropdownMenu) {
+                dropdownToggle.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropdownMenu.classList.toggle('show');
+                    const isExpanded = dropdownMenu.classList.contains('show');
+                    dropdownToggle.setAttribute('aria-expanded', isExpanded);
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!dropdownToggle.contains(e.target) && !dropdownMenu.contains(e.target)) {
+                        dropdownMenu.classList.remove('show');
+                        dropdownToggle.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        });
+    </script>
     {% block extra_js %}{% endblock %}
 </body>
 

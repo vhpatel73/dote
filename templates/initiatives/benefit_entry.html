@@ -8,7 +8,7 @@
             style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
             <div>
                 <a href="{% url 'initiative_list' %}" class="btn-text">
-                    <i class="fas fa-arrow-left"></i> Back to List
+                    <i class="fas fa-arrow-left"></i>&nbsp; Back to List
                 </a>
                 <h1 style="margin-top: 1rem;">{{ initiative.name }}: <span class="gradient-text">Realized Benefit</span>
                 </h1>
@@ -75,7 +75,7 @@
                         style="width: 100%; justify-content: center;">
                         Submit Entry
                     </button>
-                    <button type="button" id="cancel-edit" class="btn-text"
+                    <button type="button" id="cancel-edit" class="btn-secondary"
                         style="display: none; width: 100%; text-align: center;">
                         Cancel Edit
                     </button>
@@ -113,12 +113,19 @@
                             <td>${{ entry.revenue_impact|floatformat:2|intcomma }}</td>
                             {% endif %}
                             <td style="display: flex; gap: 0.5rem; align-items: center;">
+                                {% if initiative.benefit_name == 'New Business' %}
                                 <button type="button" class="action-btn edit-entry-btn"
                                     style="border: none; cursor: pointer;" data-month="{{ entry.month|date:'Y-m' }}"
-                                    data-kpi="{{ entry.kpi_value }}" {% if initiative.benefit_name=='New Business' %}
-                                    data-rev="{{ entry.revenue_impact }}" {% endif %} title="Edit">
+                                    data-kpi="{{ entry.kpi_value }}" data-rev="{{ entry.revenue_impact }}" title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
+                                {% else %}
+                                <button type="button" class="action-btn edit-entry-btn"
+                                    style="border: none; cursor: pointer;" data-month="{{ entry.month|date:'Y-m' }}"
+                                    data-kpi="{{ entry.kpi_value }}" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                {% endif %}
                                 <form action="{% url 'benefit_delete' entry.pk %}" method="post"
                                     onsubmit="return confirm('Delete this entry?')" style="margin: 0;">
                                     {% csrf_token %}
@@ -164,69 +171,80 @@
 
 {% block extra_js %}
 <script>
-    {% if initiative.benefit_name == 'Productivity Gain' %}
-    const multMin = {{ initiative.multiplier_minutes|default: 0 }};
-    const multDol = {{ initiative.multiplier_dollars|default: 0 }};
-    const kpiInput = document.getElementById('id_kpi_value');
-    const calcMinutes = document.getElementById('calc_minutes');
-    const calcDollars = document.getElementById('calc_dollars');
+    const benefitName = "{{ initiative.benefit_name|escapejs }}";
 
-    kpiInput.addEventListener('input', function () {
-        const val = parseFloat(this.value) || 0;
-        const totalMinutes = val * multMin;
-        calcMinutes.textContent = totalMinutes.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-        calcDollars.textContent = '$' + (totalMinutes * multDol).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    });
-    {% endif %}
+    if (benefitName === 'Productivity Gain') {
+        const multMin = parseFloat("{{ initiative.multiplier_minutes|default:0 }}") || 0;
+        const multDol = parseFloat("{{ initiative.multiplier_dollars|default:0 }}") || 0;
+        const kpiInput = document.getElementById('id_kpi_value');
+        const calcMinutes = document.getElementById('calc_minutes');
+        const calcDollars = document.getElementById('calc_dollars');
+
+        if (kpiInput) {
+            kpiInput.addEventListener('input', function () {
+                const val = parseFloat(this.value) || 0;
+                const totalMinutes = val * multMin;
+                calcMinutes.textContent = totalMinutes.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+                calcDollars.textContent = '$' + (totalMinutes * multDol).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            });
+        }
+    }
 
     const formTitle = document.getElementById('form-title');
     const submitBtn = document.getElementById('submit-btn');
     const cancelBtn = document.getElementById('cancel-edit');
     const monthInput = document.getElementById('id_month');
-    const defaultMonth = monthInput.value;
+    const defaultMonth = monthInput ? monthInput.value : '';
 
     document.querySelectorAll('.edit-entry-btn').forEach(btn => {
         btn.addEventListener('click', function () {
             const month = this.getAttribute('data-month');
             const kpi = this.getAttribute('data-kpi');
 
-            monthInput.value = month;
-            document.getElementById('id_kpi_value').value = kpi;
+            if (monthInput) monthInput.value = month;
+            const kpiInputEl = document.getElementById('id_kpi_value');
+            if (kpiInputEl) kpiInputEl.value = kpi;
 
-            {% if initiative.benefit_name == 'New Business' %}
-            const rev = this.getAttribute('data-rev');
-            document.getElementById('id_revenue_impact').value = rev;
-            {% endif %}
+            if (benefitName === 'New Business') {
+                const rev = this.getAttribute('data-rev');
+                const revInput = document.getElementById('id_revenue_impact');
+                if (revInput) revInput.value = rev;
+            }
 
-            {% if initiative.benefit_name == 'Productivity Gain' %}
-            kpiInput.dispatchEvent(new Event('input'));
-            {% endif %}
+            if (benefitName === 'Productivity Gain') {
+                if (kpiInputEl) kpiInputEl.dispatchEvent(new Event('input'));
+            }
 
             // UI Changes for Edit Mode
-            formTitle.textContent = 'Edit Monthly Entry';
-            submitBtn.textContent = 'Update Entry';
-            cancelBtn.style.display = 'block';
+            if (formTitle) formTitle.textContent = 'Edit Monthly Entry';
+            if (submitBtn) submitBtn.textContent = 'Update Entry';
+            if (cancelBtn) cancelBtn.style.display = 'block';
 
             // Scroll to form and highlight
             const formCard = document.getElementById('entry-card');
-            formCard.scrollIntoView({ behavior: 'smooth' });
-            formCard.style.outline = '2px solid var(--primary-color)';
-            setTimeout(() => { formCard.style.outline = 'none'; }, 2000);
+            if (formCard) {
+                formCard.scrollIntoView({ behavior: 'smooth' });
+                formCard.style.outline = '2px solid var(--primary-color)';
+                setTimeout(() => { formCard.style.outline = 'none'; }, 2000);
+            }
         });
     });
 
-    cancelBtn.addEventListener('click', function () {
-        document.getElementById('benefit-form').reset();
-        monthInput.value = defaultMonth;
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function () {
+            document.getElementById('benefit-form').reset();
+            if (monthInput) monthInput.value = defaultMonth;
 
-        formTitle.textContent = 'Record Monthly Tracking';
-        submitBtn.textContent = 'Submit Entry';
-        cancelBtn.style.display = 'none';
+            if (formTitle) formTitle.textContent = 'Record Monthly Tracking';
+            if (submitBtn) submitBtn.textContent = 'Submit Entry';
+            if (cancelBtn) cancelBtn.style.display = 'none';
 
-        {% if initiative.benefit_name == 'Productivity Gain' %}
-        kpiInput.dispatchEvent(new Event('input'));
-        {% endif %}
-    });
+            if (benefitName === 'Productivity Gain') {
+                const kpiInputEl = document.getElementById('id_kpi_value');
+                if (kpiInputEl) kpiInputEl.dispatchEvent(new Event('input'));
+            }
+        });
+    }
 </script>
 {% endblock %}
 {% endblock %}

@@ -7,12 +7,15 @@
         <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
             <a href="{% if initiative %}{% url 'benefit_entry' initiative.pk %}{% else %}{% url 'dashboard' %}{% endif %}"
                 class="action-btn" style="width: auto; padding: 0 1rem;">
-                <i class="fas fa-arrow-left"></i> Back
+                <i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Back
             </a>
-            <span class="badge" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;">Technical Specs</span>
         </div>
         <h1>Real-time <span class="gradient-text">Integration Guide</span></h1>
-        <p class="text-secondary">Technical documentation for reporting AI benefits via Webhook API.</p>
+
+        <p class="text-secondary">
+            <span class="badge" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;">Technical Specs</span>
+            How to report AI benefits via Webhook API?
+        </p>
     </header>
 
     <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 2rem;">
@@ -27,52 +30,56 @@
             <section class="card glass" style="margin-bottom: 2rem; padding: 2rem;">
                 <h3><i class="fas fa-terminal" style="color: #34A853;"></i> Endpoint Specification</h3>
                 <div class="api-block"
-                    style="background: rgba(0,0,0,0.05); padding: 1.5rem; border-radius: 12px; margin-top: 1rem;">
-                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                    style="background: rgba(0,0,0,0.05); padding: 1.5rem; border-radius: 12px; margin-top: 1rem; overflow-x: auto;">
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem; flex-wrap: wrap;">
                         <span class="badge" style="background: #34A853; color: white;">POST</span>
-                        <code style="font-weight: 700; color: var(--text-primary);">{{ webhook_url }}</code>
+                        <code
+                            style="font-weight: 700; color: var(--text-primary); word-break: break-all;">{{ webhook_url }}</code>
                     </div>
                     <p style="font-size: 0.85rem; color: var(--text-secondary);">Content-Type:
-                        <code>application/json</code></p>
+                        <code>application/json</code>
+                    </p>
                 </div>
 
                 <h4 style="margin-top: 2rem;">Payload Structure</h4>
-                <table class="analytic-table" style="margin-top: 1rem;">
-                    <thead>
-                        <tr>
-                            <th>Field</th>
-                            <th>Type</th>
-                            <th>Requirement</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><code>webhook_key</code></td>
-                            <td>String</td>
-                            <td><span style="color: #EA4335; font-weight: 700;">Required</span></td>
-                            <td>The secure secret key for the specific initiative.</td>
-                        </tr>
-                        <tr>
-                            <td><code>kpi_value</code></td>
-                            <td>Float</td>
-                            <td>Conditional</td>
-                            <td>Required if the initiative tracks <strong>Productivity Gain</strong>.</td>
-                        </tr>
-                        <tr>
-                            <td><code>revenue_impact</code></td>
-                            <td>Float</td>
-                            <td>Conditional</td>
-                            <td>Required if the initiative tracks <strong>New Business</strong>.</td>
-                        </tr>
-                        <tr>
-                            <td><code>month</code></td>
-                            <td>String</td>
-                            <td>Optional</td>
-                            <td>Format: <code>YYYY-MM</code>. Defaults to current month if omitted.</td>
-                        </tr>
-                    </tbody>
-                </table>
+                <div style="overflow-x: auto; width: 100%;">
+                    <table class="analytic-table" style="margin-top: 1rem; width: 100%; min-width: 500px;">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Requirement</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>webhook_key</code></td>
+                                <td>String</td>
+                                <td><span style="color: #EA4335; font-weight: 700;">Required</span></td>
+                                <td>The secure secret key for the specific initiative.</td>
+                            </tr>
+                            <tr>
+                                <td><code>kpi_value</code></td>
+                                <td>Float</td>
+                                <td>Conditional</td>
+                                <td>Required if the initiative tracks <strong>Productivity Gain</strong>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>revenue_impact</code></td>
+                                <td>Float</td>
+                                <td>Conditional</td>
+                                <td>Required if the initiative tracks <strong>New Business</strong>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>month</code></td>
+                                <td>String</td>
+                                <td>Optional</td>
+                                <td>Format: <code>YYYY-MM</code>. Defaults to current month if omitted.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
             <section class="card glass" style="margin-bottom: 2rem; padding: 2rem;">
@@ -107,9 +114,8 @@ print(response.json())</code></pre>
             <div class="card glass spotlight-card"
                 style="padding: 1.5rem; border: 1px solid var(--primary-glow); background: rgba(0, 122, 255, 0.03);">
                 <div style="text-align: center; margin-bottom: 1rem;">
-                    <div class="stat-icon-box"
-                        style="margin: 0 auto 0.5rem; background: var(--primary-glow); color: var(--primary-color);">
-                        <i class="fas fa-file-code"></i>
+                    <div class="stat-icon-box" style="margin: 0 auto 0.5rem; color: var(--primary-color);">
+                        <h1><i class="fas fa-file-code"></i></h1>
                     </div>
                     <h4 style="margin: 0;">Personalized Spec</h4>
                     <p class="text-tiny">Generated for {{ initiative.name }}</p>
@@ -126,12 +132,6 @@ print(response.json())</code></pre>
                     </div>
                 </div>
 
-                <div style="margin-top: 1.5rem;">
-                    <label class="text-tiny" style="font-weight: 700; text-transform: uppercase;">Initiative
-                        Link</label>
-                    <p style="font-size: 0.85rem; margin-top: 0.25rem;">{{ initiative.name }} ({{ initiative.department
-                        }})</p>
-                </div>
             </div>
             {% else %}
             <div class="card glass" style="padding: 1.5rem;">
@@ -179,7 +179,27 @@ print(response.json())</code></pre>
 
     @media (max-width: 768px) {
         .grid {
-            grid-template-columns: 1fr !important;
+            display: flex;
+            flex-direction: column-reverse;
+            /* Put sidebar config at top on mobile */
+            gap: 1.5rem;
+        }
+
+        header h1 {
+            font-size: 1.6rem;
+        }
+
+        .card {
+            padding: 1.25rem !important;
+        }
+
+        .api-block {
+            padding: 1rem !important;
+        }
+
+        .code-header,
+        pre {
+            font-size: 0.75rem !important;
         }
     }
 </style>
