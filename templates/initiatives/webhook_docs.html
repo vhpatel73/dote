@@ -83,17 +83,31 @@
             </section>
 
             <section class="card glass" style="margin-bottom: 2rem; padding: 2rem;">
-                <h3><i class="fas fa-code" style="color: #FBBC05;"></i> Interactive Example</h3>
-                <p style="margin-bottom: 1rem;">Use the following code snippet to integrate within your Python
-                    application:</p>
+                <h3><i class="fas fa-code" style="color: #FBBC05;"></i> Interactive Examples</h3>
+                <p style="margin-bottom: 1rem;">Use the following code snippets to integrate within your various
+                    applications:</p>
 
-                <div class="code-header"
-                    style="background: #1e293b; color: #94a3b8; padding: 0.5rem 1rem; border-radius: 8px 8px 0 0; font-family: monospace; font-size: 0.8rem; display: flex; justify-content: space-between; align-items: center;">
-                    <span>python_integration.py</span>
-                    <i class="far fa-copy" style="cursor: pointer;"></i>
+                <div class="code-tabs">
+                    <button class="tab-btn active" onclick="openCodeTab(event, 'lang-python')"><i class="fab fa-python"
+                            style="color: #3776AB;"></i> Python</button>
+                    <button class="tab-btn" onclick="openCodeTab(event, 'lang-nodejs')"><i class="fab fa-node-js"
+                            style="color: #68A063;"></i> Node.js</button>
+                    <button class="tab-btn" onclick="openCodeTab(event, 'lang-lambda')"><i class="fab fa-aws"
+                            style="color: #FF9900;"></i> Lambda</button>
+                    <button class="tab-btn" onclick="openCodeTab(event, 'lang-java')"><i class="fab fa-java"
+                            style="color: #ED8B00;"></i> Java</button>
+                    <button class="tab-btn" onclick="openCodeTab(event, 'lang-salesforce')"><i class="fab fa-salesforce"
+                            style="color: #00A1E0;"></i> Salesforce</button>
                 </div>
-                <pre
-                    style="background: #0f172a; color: #f8fafc; padding: 1.5rem; border-radius: 0 0 8px 8px; overflow-x: auto; font-size: 0.9rem; margin: 0;"><code>import requests
+
+                <!-- Python Example -->
+                <div id="lang-python" class="code-content active">
+                    <div class="code-header">
+                        <span>python_integration.py</span>
+                        <i class="far fa-copy" onclick="copySnippet('code-python')" style="cursor: pointer;"
+                            title="Copy Code"></i>
+                    </div>
+                    <pre><code id="code-python">import requests
 import json
 
 url = "{{ webhook_url }}"
@@ -106,6 +120,118 @@ payload = {
 
 response = requests.post(url, json=payload)
 print(response.json())</code></pre>
+                </div>
+
+                <!-- Node.js Example -->
+                <div id="lang-nodejs" class="code-content">
+                    <div class="code-header">
+                        <span>app.js</span>
+                        <i class="far fa-copy" onclick="copySnippet('code-nodejs')" style="cursor: pointer;"
+                            title="Copy Code"></i>
+                    </div>
+                    <pre><code id="code-nodejs">const axios = require('axios');
+
+const url = "{{ webhook_url }}";
+const payload = {
+    webhook_key: "{% if initiative %}{{ initiative.webhook_key }}{% else %}YOUR_SECRET_KEY{% endif %}",
+    kpi_value: 150.5,
+    revenue_impact: 0,
+    month: "2024-03"
+};
+
+axios.post(url, payload)
+    .then(response => console.log(response.data))
+    .catch(error => console.error(error));</code></pre>
+                </div>
+
+                <!-- AWS Lambda Example (Node.js) -->
+                <div id="lang-lambda" class="code-content">
+                    <div class="code-header">
+                        <span>lambda_function.mjs</span>
+                        <i class="far fa-copy" onclick="copySnippet('code-lambda')" style="cursor: pointer;"
+                            title="Copy Code"></i>
+                    </div>
+                    <pre><code id="code-lambda">export const handler = async (event) => {
+    const url = "{{ webhook_url }}";
+    
+    const payload = {
+        webhook_key: process.env.WEBHOOK_KEY || "{% if initiative %}{{ initiative.webhook_key }}{% else %}YOUR_SECRET_KEY{% endif %}",
+        kpi_value: 150.5,
+        revenue_impact: 0,
+        month: "2024-03"
+    };
+
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    return { statusCode: 200, body: JSON.stringify(data) };
+};</code></pre>
+                </div>
+
+                <!-- Java Example -->
+                <div id="lang-java" class="code-content">
+                    <div class="code-header">
+                        <span>WebhookIntegration.java</span>
+                        <i class="far fa-copy" onclick="copySnippet('code-java')" style="cursor: pointer;"
+                            title="Copy Code"></i>
+                    </div>
+                    <pre><code id="code-java">import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+
+public class WebhookIntegration {
+    public static void main(String[] args) throws Exception {
+        String url = "{{ webhook_url }}";
+        String payload = "{" +
+            "\"webhook_key\": \"{% if initiative %}{{ initiative.webhook_key }}{% else %}YOUR_SECRET_KEY{% endif %}\", " +
+            "\"kpi_value\": 150.5, " +
+            "\"revenue_impact\": 0, " +
+            "\"month\": \"2024-03\"" +
+        "}";
+
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("Content-Type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(payload))
+            .build();
+
+        HttpResponse&lt;String&gt; response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.body());
+    }
+}</code></pre>
+                </div>
+
+                <!-- Salesforce Example -->
+                <div id="lang-salesforce" class="code-content">
+                    <div class="code-header">
+                        <span>WebhookCallout.cls</span>
+                        <i class="far fa-copy" onclick="copySnippet('code-salesforce')" style="cursor: pointer;"
+                            title="Copy Code"></i>
+                    </div>
+                    <pre><code id="code-salesforce">public class WebhookCallout {
+    @future(callout=true)
+    public static void sendBenefitReport() {
+        Http http = new Http();
+        HttpRequest request = new HttpRequest();
+        request.setEndpoint('{{ webhook_url }}');
+        request.setMethod('POST');
+        request.setHeader('Content-Type', 'application/json');
+        
+        String key = '{% if initiative %}{{ initiative.webhook_key }}{% else %}YOUR_SECRET_KEY{% endif %}';
+        String payload = '{"webhook_key": "' + key + '", "kpi_value": 150.5, "revenue_impact": 0, "month": "2024-03"}';
+        request.setBody(payload);
+
+        HttpResponse response = http.send(request);
+        System.debug(response.getBody());
+    }
+}</code></pre>
+                </div>
             </section>
         </div>
 
@@ -164,12 +290,89 @@ print(response.json())</code></pre>
         margin: 0 auto;
     }
 
+    .code-header {
+        background: #1e293b;
+        color: #94a3b8;
+        padding: 0.6rem 1rem;
+        border-radius: 8px 8px 0 0;
+        font-family: monospace;
+        font-size: 0.8rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
     .code-header span {
         font-family: inherit;
     }
 
+    pre {
+        background: #0f172a;
+        color: #f8fafc;
+        padding: 1.5rem;
+        border-radius: 0 0 8px 8px;
+        overflow-x: auto;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+
     pre code {
         font-family: 'Fira Code', 'Courier New', monospace;
+    }
+
+    /* Tabs Styling */
+    .code-tabs {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0px;
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        background: none;
+        border: none;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        color: var(--text-secondary);
+        font-weight: 600;
+        font-size: 0.85rem;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+        margin-bottom: -1px;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .tab-btn:hover {
+        color: var(--text-primary);
+    }
+
+    .tab-btn.active {
+        color: var(--primary-color);
+        border-bottom: 2px solid var(--primary-color);
+    }
+
+    .code-content {
+        display: none;
+        animation: fadeIn 0.3s;
+    }
+
+    .code-content.active {
+        display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
 
     .spotlight-card {
@@ -206,10 +409,36 @@ print(response.json())</code></pre>
 
 <script>
     function copyToClipboard(id) {
-        const text = document.getElementById(id).innerText;
+        const textElement = document.getElementById(id);
+        const text = textElement.innerText || textElement.textContent;
         navigator.clipboard.writeText(text).then(() => {
             alert('Copied to clipboard!');
         });
+    }
+
+    function copySnippet(codeId) {
+        const codeElement = document.getElementById(codeId);
+        const text = codeElement.innerText || codeElement.textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Code snippet copied to clipboard!');
+        });
+    }
+
+    function openCodeTab(evt, langName) {
+        const contents = document.getElementsByClassName("code-content");
+        for (let i = 0; i < contents.length; i++) {
+            contents[i].style.display = "none";
+            contents[i].classList.remove("active");
+        }
+
+        const tablinks = document.getElementsByClassName("tab-btn");
+        for (let i = 0; i < tablinks.length; i++) {
+            tablinks[i].classList.remove("active");
+        }
+
+        document.getElementById(langName).style.display = "block";
+        document.getElementById(langName).classList.add("active");
+        evt.currentTarget.classList.add("active");
     }
 </script>
 {% endblock %}
