@@ -40,6 +40,9 @@
             <a href="{% url 'dashboard' %}" class="btn-text">Dashboard</a>
             <a href="{% url 'benefit_analysis' %}" class="btn-text">Trends</a>
             <a href="{% url 'initiative_list' %}" class="btn-text">Initiatives</a>
+            <a href="{% url 'webhook_docs' %}" class="btn-text" title="API Webhook Documentation">
+                <i class="fas fa-plug"></i> API
+            </a>
             <a href="{% url 'initiative_create' %}" class="btn-primary">
                 <i class="fas fa-plus"></i> New Initiative
             </a>
@@ -65,6 +68,10 @@
                 ACG - AI Value Board | Office of CTO & CFO
             </div>
             <div class="footer-links">
+                <a href="{% url 'webhook_docs' %}"
+                    style="color: var(--text-secondary); text-decoration: none; font-size: 0.75rem;">
+                    <i class="fas fa-book"></i> API Documentation
+                </a>
                 {% block footer_links %}{% endblock %}
             </div>
         </div>

@@ -4,11 +4,22 @@
 {% block content %}
 <div style="max-width: 900px; margin: 0 auto;">
     <div style="margin-bottom: 2rem;">
-        <a href="{% url 'initiative_list' %}" class="btn-text">
-            <i class="fas fa-arrow-left"></i> Back to List
-        </a>
-        <h1 style="margin-top: 1rem;">{{ initiative.name }}: <span class="gradient-text">Realized Benefit</span></h1>
-        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;" class="text-tiny">
+        <div
+            style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <a href="{% url 'initiative_list' %}" class="btn-text">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+                <h1 style="margin-top: 1rem;">{{ initiative.name }}: <span class="gradient-text">Realized Benefit</span>
+                </h1>
+            </div>
+            <a href="{% url 'webhook_docs_personal' initiative.pk %}" class="btn-text"
+                style="background: rgba(143, 0, 255, 0.05); padding: 0.5rem 1rem; border-radius: 8px; color: #8F00FF;">
+                <i class="fas fa-laptop-code"></i> Real-time Integration Guide
+            </a>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; margin-top: 1rem; flex-wrap: wrap;"
+            class="text-tiny">
             <span><i class="fas fa-tag"></i> {{ initiative.benefit_name }}</span>
             <span><i class="fas fa-building"></i> {{ initiative.department }}</span>
             <span><i class="fas fa-user-tie"></i> {{ initiative.requester_name }}</span>
@@ -104,7 +115,7 @@
                             <td style="display: flex; gap: 0.5rem; align-items: center;">
                                 <button type="button" class="action-btn edit-entry-btn"
                                     style="border: none; cursor: pointer;" data-month="{{ entry.month|date:'Y-m' }}"
-                                    data-kpi="{{ entry.kpi_value }}" {% if initiative.benefit_name == 'New Business' %}
+                                    data-kpi="{{ entry.kpi_value }}" {% if initiative.benefit_name=='New Business' %}
                                     data-rev="{{ entry.revenue_impact }}" {% endif %} title="Edit">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -154,8 +165,8 @@
 {% block extra_js %}
 <script>
     {% if initiative.benefit_name == 'Productivity Gain' %}
-    const multMin = {{ initiative.multiplier_minutes|default:0 }};
-    const multDol = {{ initiative.multiplier_dollars|default:0 }};
+    const multMin = {{ initiative.multiplier_minutes|default: 0 }};
+    const multDol = {{ initiative.multiplier_dollars|default: 0 }};
     const kpiInput = document.getElementById('id_kpi_value');
     const calcMinutes = document.getElementById('calc_minutes');
     const calcDollars = document.getElementById('calc_dollars');

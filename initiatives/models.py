@@ -41,6 +41,9 @@ class Initiative(models.Model):
     value = models.TextField(max_length=1024, verbose_name="Business Value")
     benefit_name = models.CharField(max_length=32, choices=BENEFIT_NAME_CHOICES)
     
+    # Webhook Integration
+    webhook_key = models.CharField(max_length=64, unique=True, blank=True, null=True, help_text="Secret key for external reporting via webhook")
+    
     # New Multiplier Fields
     kpi_name = models.CharField(max_length=64, blank=True, null=True, verbose_name="KPI Name", help_text="Name of the KPI to be tracked")
     multiplier_minutes = models.FloatField(default=0, help_text="KPI x this = minutes saved")
@@ -49,8 +52,29 @@ class Initiative(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        if not self.webhook_key:
+            import secrets
+            self.webhook_key = secrets.token_urlsafe(32)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.name} ({self.department})"
+
+class WebhookAuditLog(models.Model):
+    initiative = models.ForeignKey(Initiative, on_delete=models.SET_NULL, null=True, blank=True)
+    status_code = models.IntegerField()
+    payload = models.JSONField()
+    response_body = models.JSONField(null=True, blank=True)
+    error_message = models.TextField(null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Webhook Log - {self.initiative.name if self.initiative else 'Unknown'} - {self.created_at}"
 
 class RealizedBenefit(models.Model):
     initiative = models.ForeignKey(Initiative, on_delete=models.CASCADE, related_name='realized_benefits')

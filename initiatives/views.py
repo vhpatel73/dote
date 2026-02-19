@@ -7,7 +7,9 @@ from django.contrib import messages
 from django.db.models import Sum, Count, F, ExpressionWrapper, FloatField, Q
 from django.db.models.functions import TruncMonth, Coalesce
 import json
-from .models import Initiative, RealizedBenefit
+from .models import Initiative, RealizedBenefit, WebhookAuditLog
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from datetime import datetime
 import pandas as pd
 import csv
@@ -342,3 +344,107 @@ class SampleCSVDownloadView(View):
             'Productivity Gain', 'Calls Handled', '5.0', '25.0'
         ])
         return response
+@method_decorator(csrf_exempt, name='dispatch')
+class RealtimeReportingWebhookView(View):
+    def post(self, request):
+        ip = request.META.get('REMOTE_ADDR')
+        payload = {}
+        initiative = None
+        
+        try:
+            payload = json.loads(request.body)
+        except json.JSONDecodeError:
+            log = WebhookAuditLog.objects.create(
+                status_code=400,
+                payload={'raw_body': request.body.decode('utf-8', errors='replace')},
+                error_message="Invalid JSON payload",
+                ip_address=ip
+            )
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        # Extraction logic
+        webhook_key = payload.get('webhook_key')
+        kpi_value = payload.get('kpi_value')
+        revenue_impact = payload.get('revenue_impact')
+        month_str = payload.get('month') # Optional, defaults to current month
+
+        if not webhook_key:
+            WebhookAuditLog.objects.create(
+                status_code=401,
+                payload=payload,
+                error_message="Missing webhook_key",
+                ip_address=ip
+            )
+            return JsonResponse({'error': 'Missing webhook_key'}, status=401)
+
+        initiative = Initiative.objects.filter(webhook_key=webhook_key).first()
+        if not initiative:
+            WebhookAuditLog.objects.create(
+                status_code=403,
+                payload=payload,
+                error_message=f"Invalid webhook_key: {webhook_key}",
+                ip_address=ip
+            )
+            return JsonResponse({'error': 'Invalid webhook_key'}, status=403)
+
+        # Date handling
+        try:
+            if month_str:
+                month = datetime.strptime(month_str, '%Y-%m').date()
+            else:
+                month = datetime.now().replace(day=1).date()
+        except ValueError:
+            WebhookAuditLog.objects.create(
+                initiative=initiative,
+                status_code=400,
+                payload=payload,
+                error_message=f"Invalid date format: {month_str}. Use YYYY-MM",
+                ip_address=ip
+            )
+            return JsonResponse({'error': 'Invalid month format. Use YYYY-MM'}, status=400)
+
+        # Valid payload processing
+        try:
+            benefit, created = RealizedBenefit.objects.update_or_create(
+                initiative=initiative,
+                month=month,
+                defaults={
+                    'kpi_value': float(kpi_value or 0),
+                    'revenue_impact': float(revenue_impact or 0)
+                }
+            )
+            
+            WebhookAuditLog.objects.create(
+                initiative=initiative,
+                status_code=200,
+                payload=payload,
+                response_body={'success': True, 'initiative': initiative.name, 'month': str(month)},
+                ip_address=ip
+            )
+            return JsonResponse({'success': True, 'message': 'Benefit reported successfully'})
+        
+        except Exception as e:
+            WebhookAuditLog.objects.create(
+                initiative=initiative,
+                status_code=500,
+                payload=payload,
+                error_message=str(e),
+                ip_address=ip
+            )
+            return JsonResponse({'error': 'Internal server error'}, status=500)
+
+class WebhookDocsView(View):
+    def get(self, request, pk=None):
+        initiative = None
+        if pk:
+            initiative = get_object_or_404(Initiative, pk=pk)
+        
+        base_url = request.build_absolute_uri('/')[:-1]
+        webhook_url = base_url + reverse('webhook_report')
+        
+        context = {
+            'initiative': initiative,
+            'webhook_url': webhook_url,
+            'base_url': base_url
+        }
+        return render(request, 'initiatives/webhook_docs.html', context)

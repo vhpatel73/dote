@@ -13,4 +13,7 @@ urlpatterns = [
     path('csv/upload/', views.CSVUploadView.as_view(), name='csv_upload'),
     path('benefit/delete/<int:pk>/', views.RealizedBenefitDeleteView.as_view(), name='benefit_delete'),
     path('csv/sample/', views.SampleCSVDownloadView.as_view(), name='csv_sample'),
+    path('webhook/report/', views.RealtimeReportingWebhookView.as_view(), name='webhook_report'),
+    path('webhook/docs/', views.WebhookDocsView.as_view(), name='webhook_docs'),
+    path('webhook/docs/<int:pk>/', views.WebhookDocsView.as_view(), name='webhook_docs_personal'),
 ]
