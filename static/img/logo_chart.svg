@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+    <g transform="translate(10, 10)" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none">
+        <!-- Upward Trend Arrow -->
+        <path d="M15 75 L45 105 L95 15" />
+        <path d="M50 15 L95 15 L95 60" />
+        
+        <!-- AI Brain/Network Nodes overlay -->
+        <circle cx="15" cy="75" r="12" fill="#FFFFFF"/>
+        <circle cx="45" cy="105" r="12" fill="#FFFFFF"/>
+        <circle cx="95" cy="15" r="14" fill="#FFFFFF"/>
+        
+        <!-- Inner accents for nodes to look technical -->
+        <circle cx="15" cy="75" r="5" fill="#1a52da" stroke="none"/>
+        <circle cx="45" cy="105" r="5" fill="#1a52da" stroke="none"/>
+        <circle cx="95" cy="15" r="6" fill="#1a52da" stroke="none"/>
+    </g>
+</svg>

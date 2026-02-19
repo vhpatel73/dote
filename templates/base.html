@@ -14,6 +14,15 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/logo_spark.svg' %}">
+
+    <!-- PWA Setup tags -->
+    <link rel="manifest" href="{% url 'manifest' %}">
+    <meta name="theme-color" content="#1a52da">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AI Value">
+    <link rel="apple-touch-icon" href="{% static 'img/logo_spark.svg' %}">
     {% block extra_head %}{% endblock %}
 </head>
 
@@ -22,8 +31,8 @@
     <nav class="glass">
         <div class="logo-container">
             <a href="{% url 'dashboard' %}" class="logo-link">
-                <img src="{% static 'img/logo.png' %}" alt="AAA Logo"
-                    style="height: 40px; width: auto; object-fit: contain; filter: brightness(0) invert(1);">
+                <img src="{% static 'img/logo_spark.svg' %}" alt="AI Value Board Logo"
+                    style="height: 40px; width: auto; object-fit: contain;">
                 <div class="brand-text">
                     <span class="brand-title"><span class="ai-brand-accent">AI</span> Value Board</span>
                     <span class="brand-subtitle">AI VALUE TRACKER FROM OFFICE OF CTO & CFO</span>
@@ -232,6 +241,18 @@
             }
         });
     </script>
+
+    <script>
+        // Progressive Web App Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register("{% url 'sw' %}")
+                    .then(registration => console.log('PWA ServiceWorker registered', registration.scope))
+                    .catch(err => console.log('PWA ServiceWorker registration failed: ', err));
+            });
+        }
+    </script>
+
     {% block extra_js %}{% endblock %}
 </body>
 

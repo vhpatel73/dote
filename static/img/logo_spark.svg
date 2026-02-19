@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+    <!-- Outer Hexagon bounding box -->
+    <path d="M60 5 L110 33 L110 87 L60 115 L10 87 L10 33 Z" fill="rgba(255,255,255,0.1)" stroke="#ffffff" stroke-width="6" stroke-linejoin="round"/>
+    <!-- AI Spark (Four-point star) -->
+    <path d="M60 20 C60 55 65 60 100 60 C65 60 60 65 60 100 C60 65 55 60 20 60 C55 60 60 55 60 20 Z" fill="#ffffff" />
+    <!-- Center glowing dot -->
+    <circle cx="60" cy="60" r="8" fill="#1a52da" />
+</svg>

@@ -1,0 +1,17 @@
+{
+    "name": "AI Value Board",
+    "short_name": "AI Value",
+    "description": "AI Value Tracker to measure productivity and revenue impact of AI solutions.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#1a52da",
+    "icons": [
+        {
+            "src": "/static/img/logo_spark.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
+}
