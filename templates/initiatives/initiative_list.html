@@ -3,29 +3,27 @@
 {% load humanize %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+<div class="header-action-row">
     <h1>AI <span class="gradient-text">Initiatives</span></h1>
-    <div style="display: flex; gap: 1rem;">
-        <form method="get" style="display: flex; align-items: center; gap: 0.5rem;">
-            <div style="position: relative;">
-                <i class="fas fa-search"
-                    style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); opacity: 0.5;"></i>
-                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search initiatives..."
-                    style="padding: 0.75rem 1rem 0.75rem 2.5rem; border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); width: 300px; font-size: 0.875rem;">
+    <div class="search-container">
+        <form method="get" class="search-form">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search initiatives...">
             </div>
-            <button type="submit" class="btn-primary" style="padding: 0.75rem 1.25rem;">Filter</button>
-            {% if request.GET.q %}
-            <a href="{% url 'initiative_list' %}" class="btn-secondary"
-                style="padding: 0.75rem; border-radius: 12px; display: flex; align-items: center; justify-content: center;"
-                title="Clear Search">
-                <i class="fas fa-times-circle"></i>
-            </a>
-            {% endif %}
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn-primary">Filter</button>
+                {% if request.GET.q %}
+                <a href="{% url 'initiative_list' %}" class="btn-secondary" title="Clear Search">
+                    <i class="fas fa-times-circle"></i>
+                </a>
+                {% endif %}
+            </div>
         </form>
     </div>
 </div>
 
-<div class="card glass" style="overflow-x: auto;">
+<div class="card glass initiative-table-view" style="overflow-x: auto;">
     <table>
         <thead>
             <tr>
@@ -114,6 +112,50 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
+
+<div class="initiative-card-view">
+    {% for initiative in initiatives %}
+    <div class="card glass mobile-initiative-card">
+        <div class="card-header" style="flex-direction: column; align-items: flex-start; gap: 0.5rem; border-bottom: none; padding-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; width: 100%; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <span class="status-dot dot-{{ initiative.status|lower|cut:' ' }}" title="{{ initiative.status }}"></span>
+                    <a href="{% url 'initiative_edit' initiative.pk %}" class="edit-link">
+                        <strong style="font-size: 0.95rem;">{{ initiative.name }}</strong>
+                    </a>
+                </div>
+                <a href="{% url 'benefit_entry' initiative.pk %}" class="action-btn benefit" title="Add Realized Benefit">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                <span style="font-size: 0.6rem; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; background: rgba(0,0,0,0.04); padding: 1px 4px; border-radius: 3px;">{{ initiative.department }}</span>
+                <span class="badge" style="font-size: 0.6rem; background: rgba(0, 122, 255, 0.05); color: var(--primary-color); border: 1px solid rgba(0, 122, 255, 0.1); padding: 0.1rem 0.4rem;">{{ initiative.technology }}</span>
+                <span class="badge" style="font-size: 0.6rem; background: rgba(0, 0, 0, 0.03); color: var(--text-secondary); border: 1px solid rgba(0, 0, 0, 0.05); padding: 0.1rem 0.4rem;">{{ initiative.benefit_name }}</span>
+            </div>
+            <div style="font-size: 0.7rem; color: var(--text-secondary); opacity: 0.7; line-height: 1.2;">
+                {{ initiative.description|truncatechars:120 }}
+            </div>
+        </div>
+        <div class="card-body" style="padding-top: 0.75rem;">
+            <div class="financial-row">
+                <div class="financial-col">
+                    <span class="info-label">Productivity</span>
+                    <span class="financial-value">{% if initiative.total_productivity > 0 %}${{ initiative.total_productivity|floatformat:0|intcomma }}{% else %}$0{% endif %}</span>
+                </div>
+                <div class="financial-col">
+                    <span class="info-label">Revenue</span>
+                    <span class="financial-value" style="color: #166534;">{% if initiative.total_revenue > 0 %}${{ initiative.total_revenue|floatformat:0|intcomma }}{% else %}$0{% endif %}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card glass" style="text-align: center; padding: 3rem;">
+        <p>{% if request.GET.q %}No initiatives match your search.{% else %}No initiatives found yet.{% endif %}</p>
+    </div>
+    {% endfor %}
 </div>
 
 {% if is_paginated %}

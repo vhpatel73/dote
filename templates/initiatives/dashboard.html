@@ -50,7 +50,8 @@
         <div class="stat-value">${{ total_revenue|floatformat:2|intcomma }}</div>
         <span class="text-tiny">Since Inception</span>
     </div>
-    <div class="stat-card glass clickable-card" onclick="location.href='{% url 'benefit_analysis' %}?tab=month';">
+    <div class="stat-card glass clickable-card total-impact-card"
+        onclick="location.href='{% url 'benefit_analysis' %}?tab=month';">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;">
                 <i class="fas fa-signal"></i>
@@ -102,7 +103,8 @@
     .stat-label {
         font-size: 0.7rem !important;
         font-weight: 700;
-        white-space: nowrap;
+        white-space: normal;
+        line-height: 1.2;
     }
 
     .clickable-card {
@@ -127,22 +129,26 @@
         gap: 0.5rem;
         margin: 0 auto 1.5rem auto;
         padding: 4px;
-        background: rgba(255, 255, 255, 0.3);
+        background: var(--bg-color);
         border: 1px solid var(--border-color);
         border-radius: 12px;
         width: fit-content;
+        max-width: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
     .tab-btn {
         background: transparent;
         border: none;
-        padding: 0.75rem 1.5rem;
+        padding: 0.6rem 1rem;
         border-radius: 10px;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.2s;
         color: var(--text-secondary);
+        white-space: nowrap;
     }
 
     .tab-btn.active {
@@ -158,18 +164,23 @@
     .tab-pane.active {
         display: flex;
         gap: 2rem;
-        align-items: center;
+        align-items: flex-start;
     }
 
     .dashboard-table-container {
         flex: 1.2;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        align-self: center;
     }
 
     .dashboard-chart-container {
         flex: 1;
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: flex-start;
+        align-self: flex-start;
     }
 
     .analytic-table {
@@ -200,6 +211,17 @@
     @media (max-width: 992px) {
         .tab-pane.active {
             flex-direction: column-reverse;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .tab-btn {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.7rem;
+        }
+
+        .stat-value {
+            font-size: 1.25rem !important;
         }
     }
 
@@ -238,7 +260,7 @@
             <table class="analytic-table">
                 <thead>
                     <tr>
-                        <th>Department</th>
+                        <th>Function</th>
                         <th style="text-align: center;">Count</th>
                         <th style="text-align: right;">Prod. Gain ($)</th>
                         <th style="text-align: right;">Rev. Impact ($)</th>
@@ -259,9 +281,9 @@
                         <td style="text-align: center;"><span class="badge"
                                 style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">{{item.count}}</span>
                         </td>
-                        <td style="text-align: right; color: var(--primary-color); font-weight: 600;">
+                        <td style="text-align: right; font-weight: 600;">
                             ${{item.prod_gain|floatformat:0|intcomma}}</td>
-                        <td style="text-align: right; color: #34A853; font-weight: 600;">
+                        <td style="text-align: right; font-weight: 600;">
                             ${{item.rev_impact|floatformat:0|intcomma}}</td>
                     </tr>
                     {% endfor %}
@@ -302,9 +324,9 @@
                         <td style="text-align: center;"><span class="badge"
                                 style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">{{item.count}}</span>
                         </td>
-                        <td style="text-align: right; color: var(--primary-color); font-weight: 600;">
+                        <td style="text-align: right; font-weight: 600;">
                             ${{item.prod_gain|floatformat:0|intcomma}}</td>
-                        <td style="text-align: right; color: #34A853; font-weight: 600;">
+                        <td style="text-align: right; font-weight: 600;">
                             ${{item.rev_impact|floatformat:0|intcomma}}</td>
                     </tr>
                     {% endfor %}
@@ -345,9 +367,9 @@
                         <td style="text-align: center;"><span class="badge"
                                 style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">{{item.count}}</span>
                         </td>
-                        <td style="text-align: right; color: var(--primary-color); font-weight: 600;">
+                        <td style="text-align: right; font-weight: 600;">
                             ${{item.prod_gain|floatformat:0|intcomma}}</td>
-                        <td style="text-align: right; color: #34A853; font-weight: 600;">
+                        <td style="text-align: right; font-weight: 600;">
                             ${{item.rev_impact|floatformat:0|intcomma}}</td>
                     </tr>
                     {% endfor %}
@@ -371,6 +393,9 @@
 {{ tech_data|json_script:"tech-data" }}
 
 <script>
+    // Global chart storage to fix rendering issues in hidden tabs
+    const charts = {};
+
     function switchTab(type) {
         // Toggle buttons
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -383,6 +408,12 @@
             pane.classList.remove('active');
         });
         document.getElementById('pane-' + type).classList.add('active');
+
+        // Force Chart.js to resize now that the container is visible
+        const chartId = type === 'func' ? 'deptChart' : (type === 'status' ? 'statusChart' : 'techChart');
+        if (charts[chartId]) {
+            charts[chartId].resize();
+        }
     }
 
     // Chart Color Palette
@@ -403,7 +434,7 @@
         const ctx = document.getElementById(id);
         if (!ctx) return;
 
-        new Chart(ctx, {
+        charts[id] = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels: labels,

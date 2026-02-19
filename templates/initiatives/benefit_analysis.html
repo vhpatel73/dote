@@ -24,71 +24,124 @@
     </div>
 
     <div id="tableMonth">
-        <table class="trend-table">
-            <thead>
-                <tr>
-                    <th>Month</th>
-                    <th style="text-align: right;">Productivity Gain ($)</th>
-                    <th style="text-align: right;">Revenue Impact ($)</th>
-                    <th style="text-align: right;">Total Impact ($)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for stat in table_by_month %}
-                <tr>
-                    <td style="font-weight: 600;">{{ stat.month_trunc|date:"F Y" }}</td>
-                    <td style="text-align: right; color: var(--primary-color);">
-                        ${{ stat.prod_gain|floatformat:2|intcomma }}
-                    </td>
-                    <td style="text-align: right; color: #34A853;">
-                        ${{ stat.rev_impact|floatformat:2|intcomma }}
-                    </td>
-                    <td style="text-align: right; font-weight: 700; color: #8F00FF;">
-                        ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="4" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="trend-table-view">
+            <table class="trend-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th style="text-align: right;">Productivity Gain ($)</th>
+                        <th style="text-align: right;">Revenue Impact ($)</th>
+                        <th style="text-align: right;">Total Impact ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in table_by_month %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ stat.month_trunc|date:"F Y" }}</td>
+                        <td style="text-align: right; color: var(--primary-color);">
+                            ${{ stat.prod_gain|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; color: #34A853;">
+                            ${{ stat.rev_impact|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; font-weight: 700; color: #8F00FF;">
+                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="trend-card-view">
+            {% for stat in table_by_month %}
+            <div class="mobile-trend-card">
+                <div class="trend-card-header">
+                    <strong>{{ stat.month_trunc|date:"F Y" }}</strong>
+                </div>
+                <div class="trend-card-body">
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Productivity</span>
+                        <span class="trend-stat-value" style="color: var(--primary-color);">${{ stat.prod_gain|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Revenue</span>
+                        <span class="trend-stat-value" style="color: #166534;">${{ stat.rev_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row total">
+                        <span class="trend-stat-label">Total Impact</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">${{ stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 
     <div id="tableInitiative" style="display: none;">
-        <table class="trend-table">
-            <thead>
-                <tr>
-                    <th>Initiative Name</th>
-                    <th>Department</th>
-                    <th style="text-align: right;">Productivity Gain ($)</th>
-                    <th style="text-align: right;">Revenue Impact ($)</th>
-                    <th style="text-align: right;">Total Impact ($)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for stat in table_by_initiative %}
-                <tr>
-                    <td style="font-weight: 600;">{{ stat.initiative__name }}</td>
-                    <td><span class="badge">{{ stat.initiative__department }}</span></td>
-                    <td style="text-align: right; color: var(--primary-color);">
-                        ${{ stat.prod_gain|floatformat:2|intcomma }}
-                    </td>
-                    <td style="text-align: right; color: #34A853;">
-                        ${{ stat.rev_impact|floatformat:2|intcomma }}
-                    </td>
-                    <td style="text-align: right; font-weight: 700; color: #8F00FF;">
-                        ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div class="trend-table-view">
+            <table class="trend-table">
+                <thead>
+                    <tr>
+                        <th>Initiative Name</th>
+                        <th>Department</th>
+                        <th style="text-align: right;">Productivity Gain ($)</th>
+                        <th style="text-align: right;">Revenue Impact ($)</th>
+                        <th style="text-align: right;">Total Impact ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in table_by_initiative %}
+                    <tr>
+                        <td style="font-weight: 600;">{{ stat.initiative__name }}</td>
+                        <td><span class="badge">{{ stat.initiative__department }}</span></td>
+                        <td style="text-align: right; color: var(--primary-color);">
+                            ${{ stat.prod_gain|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; color: #34A853;">
+                            ${{ stat.rev_impact|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; font-weight: 700; color: #8F00FF;">
+                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="trend-card-view">
+            {% for stat in table_by_initiative %}
+            <div class="mobile-trend-card">
+                <div class="trend-card-header">
+                    <strong>{{ stat.initiative__name }}</strong>
+                    <span class="badge" style="font-size: 0.55rem; padding: 1px 4px;">{{ stat.initiative__department }}</span>
+                </div>
+                <div class="trend-card-body">
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Productivity</span>
+                        <span class="trend-stat-value" style="color: var(--primary-color);">${{ stat.prod_gain|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Revenue</span>
+                        <span class="trend-stat-value" style="color: #166534;">${{ stat.rev_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row total">
+                        <span class="trend-stat-label">Total Impact</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">${{ stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
     </div>
 </div>
 
@@ -149,6 +202,67 @@
         border-radius: 6px;
         font-size: 0.7rem;
         font-weight: 700;
+    }
+
+    .trend-card-view {
+        display: none;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .mobile-trend-card {
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    .trend-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .trend-stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.25rem 0;
+    }
+
+    .trend-stat-row.total {
+        margin-top: 0.25rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed var(--border-color);
+        font-weight: 700;
+    }
+
+    .trend-stat-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .trend-stat-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    @media screen and (max-width: 768px) {
+        .trend-table-view {
+            display: none;
+        }
+
+        .trend-card-view {
+            display: flex;
+        }
+
+        .card.glass {
+            padding: 1.25rem !important;
+        }
     }
 </style>
 
