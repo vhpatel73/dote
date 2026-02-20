@@ -518,3 +518,7 @@ class AuditLogListView(ListView):
             )
             
         return queryset
+
+class AboutView(View):
+    def get(self, request):
+        return render(request, 'initiatives/about.html')

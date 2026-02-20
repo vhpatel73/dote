@@ -1,0 +1,667 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+    /* ─── Hero Section ─── */
+    .hero-section {
+        position: relative;
+        overflow: hidden;
+        padding: 6rem 2rem 5rem;
+        text-align: center;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 40%, #0f172a 100%);
+        border-radius: 24px;
+        margin-bottom: 4rem;
+        color: #f8fafc;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -40%;
+        left: -20%;
+        width: 60%;
+        height: 180%;
+        background: radial-gradient(circle, rgba(0, 122, 255, 0.15) 0%, transparent 70%);
+        animation: heroGlow 8s ease-in-out infinite alternate;
+    }
+
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        bottom: -40%;
+        right: -20%;
+        width: 60%;
+        height: 180%;
+        background: radial-gradient(circle, rgba(142, 36, 170, 0.12) 0%, transparent 70%);
+        animation: heroGlow 8s ease-in-out 2s infinite alternate-reverse;
+    }
+
+    @keyframes heroGlow {
+        from {
+            transform: translate(0, 0) scale(1);
+        }
+
+        to {
+            transform: translate(30px, -20px) scale(1.1);
+        }
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 820px;
+        margin: 0 auto;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(0, 122, 255, 0.15);
+        border: 1px solid rgba(0, 122, 255, 0.3);
+        padding: 0.4rem 1rem;
+        border-radius: 999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #60a5fa;
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.8s ease;
+    }
+
+    .hero-title {
+        font-size: 3.2rem;
+        font-weight: 800;
+        line-height: 1.1;
+        margin-bottom: 1.5rem;
+        animation: fadeInUp 0.8s 0.15s ease both;
+    }
+
+    .hero-title .gradient-hero {
+        background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #f472b6 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+        font-size: 1.15rem;
+        color: #94a3b8;
+        max-width: 640px;
+        margin: 0 auto 2.5rem;
+        line-height: 1.7;
+        animation: fadeInUp 0.8s 0.3s ease both;
+    }
+
+    .hero-cta-group {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        animation: fadeInUp 0.8s 0.45s ease both;
+    }
+
+    .cta-primary {
+        background: linear-gradient(135deg, #007AFF, #8E24AA);
+        color: white;
+        padding: 0.85rem 2rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+        text-decoration: none;
+    }
+
+    .cta-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0, 122, 255, 0.3);
+    }
+
+    .cta-secondary {
+        background: rgba(255, 255, 255, 0.08);
+        color: #e2e8f0;
+        padding: 0.85rem 2rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .cta-secondary:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* ─── Grid mesh backdrop ─── */
+    .hero-grid {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        opacity: 0.07;
+        background-size: 40px 40px;
+        background-image:
+            linear-gradient(to right, #94a3b8 1px, transparent 1px),
+            linear-gradient(to bottom, #94a3b8 1px, transparent 1px);
+    }
+
+    /* ─── Blog Sections ─── */
+    .blog-container {
+        max-width: 860px;
+        margin: 0 auto;
+    }
+
+    .blog-section {
+        margin-bottom: 4rem;
+        animation: fadeInUp 0.6s ease both;
+    }
+
+    .blog-section:nth-child(2) {
+        animation-delay: 0.1s;
+    }
+
+    .blog-section:nth-child(3) {
+        animation-delay: 0.2s;
+    }
+
+    .blog-section:nth-child(4) {
+        animation-delay: 0.3s;
+    }
+
+    .blog-section:nth-child(5) {
+        animation-delay: 0.4s;
+    }
+
+    .section-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-bottom: 0.75rem;
+    }
+
+    .blog-section h2 {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        line-height: 1.2;
+    }
+
+    .blog-section p {
+        font-size: 1.05rem;
+        color: var(--text-secondary);
+        line-height: 1.8;
+        margin-bottom: 1rem;
+    }
+
+    .blog-section p strong {
+        color: var(--text-primary);
+    }
+
+    /* ─── Feature Cards Row ─── */
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        margin: 2rem 0 3rem;
+    }
+
+    .feature-card {
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 1.75rem;
+        text-align: center;
+        transition: transform 0.25s, box-shadow 0.25s;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    .feature-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin: 0 auto 1rem;
+    }
+
+    .feature-card h4 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .feature-card p {
+        font-size: 0.82rem !important;
+        color: var(--text-secondary);
+        line-height: 1.5 !important;
+    }
+
+    /* ─── Highlight Quote ─── */
+    .highlight-quote {
+        position: relative;
+        padding: 2.5rem 2.5rem 2.5rem 3rem;
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(0, 122, 255, 0.04), rgba(142, 36, 170, 0.04));
+        border-left: 4px solid;
+        border-image: linear-gradient(180deg, #007AFF, #8E24AA) 1;
+        margin: 2rem 0 3rem;
+    }
+
+    .highlight-quote p {
+        font-size: 1.2rem !important;
+        font-weight: 600;
+        line-height: 1.6 !important;
+        color: var(--text-primary) !important;
+        font-style: italic;
+    }
+
+    .highlight-quote .quote-author {
+        font-size: 0.85rem !important;
+        font-weight: 400;
+        font-style: normal;
+        color: var(--text-secondary) !important;
+        margin-top: 0.75rem;
+    }
+
+    /* ─── Timeline ─── */
+    .timeline {
+        position: relative;
+        padding-left: 2.5rem;
+        margin: 2rem 0;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(180deg, #007AFF, #8E24AA, #34A853);
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 2rem;
+        padding-left: 1rem;
+    }
+
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -2.5rem;
+        top: 4px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: 3px solid #007AFF;
+        background: white;
+    }
+
+    .timeline-item:nth-child(2)::before {
+        border-color: #8E24AA;
+    }
+
+    .timeline-item:nth-child(3)::before {
+        border-color: #FBBC05;
+    }
+
+    .timeline-item:nth-child(4)::before {
+        border-color: #34A853;
+    }
+
+    .timeline-item h4 {
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+
+    .timeline-item p {
+        font-size: 0.9rem !important;
+        line-height: 1.6 !important;
+    }
+
+    /* ─── Stat Row ─── */
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1.5rem;
+        margin: 2.5rem 0 3rem;
+    }
+
+    .stat-block {
+        text-align: center;
+        padding: 1.5rem 1rem;
+        border-radius: 16px;
+        background: var(--card-bg);
+        border: 1px solid var(--border-color);
+    }
+
+    .stat-block .stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        background: var(--accent-glow);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-block .stat-desc {
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        margin-top: 0.25rem;
+        font-weight: 600;
+    }
+
+    /* ─── CTA banner ─── */
+    .cta-banner {
+        text-align: center;
+        padding: 4rem 2rem;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        color: #f8fafc;
+        margin: 3rem 0 1rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-banner::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+            radial-gradient(circle at 20% 50%, rgba(0, 122, 255, 0.1), transparent 50%),
+            radial-gradient(circle at 80% 50%, rgba(142, 36, 170, 0.1), transparent 50%);
+    }
+
+    .cta-banner h2 {
+        position: relative;
+        z-index: 1;
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 0.75rem;
+    }
+
+    .cta-banner p {
+        position: relative;
+        z-index: 1;
+        color: #94a3b8;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+    }
+
+    .cta-banner a {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* ─── Responsiveness ─── */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+
+        .feature-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stat-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .hero-section {
+            padding: 4rem 1.5rem 3rem;
+        }
+
+        .highlight-quote {
+            padding: 1.5rem;
+        }
+
+        .blog-section h2 {
+            font-size: 1.4rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero-section">
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+        <div class="hero-badge">
+            <i class="fas fa-bolt"></i> From the Office of CTO &amp; CFO
+        </div>
+        <h1 class="hero-title">
+            Measure the <span class="gradient-hero">Real Value</span><br>
+            of Enterprise AI
+        </h1>
+        <p class="hero-subtitle">
+            AI Value Board is a purpose-built tracking platform that translates AI investments into
+            dollars saved and revenue gained — giving leadership real-time visibility into what's working.
+        </p>
+        <div class="hero-cta-group">
+            <a href="{% url 'dashboard' %}" class="cta-primary">Open Dashboard</a>
+            <a href="{% url 'webhook_docs' %}" class="cta-secondary"><i class="fas fa-plug"></i>&nbsp; API Docs</a>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════ BLOG ═══════════════════ -->
+<div class="blog-container">
+
+    <!-- Section 1 — The Shift -->
+    <div class="blog-section">
+        <div class="section-eyebrow" style="color: #007AFF;">
+            <i class="fas fa-microchip"></i> THE ENTERPRISE AI SHIFT
+        </div>
+        <h2>AI &amp; Agentic Capabilities Are Becoming<br><span class="gradient-text">A Must-Have Stack</span></h2>
+        <p>
+            The enterprise software landscape is undergoing a generational shift.
+            <strong>AI solutions — particularly agentic AI that can reason, plan, and execute autonomously
+                — are no longer experimental prototypes.</strong> They are becoming an indispensable part of the
+            modern technology stack. From intelligent document processing and predictive analytics
+            to autonomous customer service agents and code-generation copilots, the capabilities
+            are expanding at an unprecedented pace.
+        </p>
+        <p>
+            Organizations that fail to integrate these capabilities risk falling behind competitors
+            who are already leveraging AI to collapse timelines, reduce manual overhead, and
+            unlock entirely new revenue streams.
+        </p>
+    </div>
+
+    <!-- Feature Cards -->
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon" style="background: rgba(0, 122, 255, 0.1); color: #007AFF;">
+                <i class="fas fa-robot"></i>
+            </div>
+            <h4>Agentic AI</h4>
+            <p>Autonomous AI agents that reason, plan, and execute complex multi-step tasks without human intervention.
+            </p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background: rgba(52, 168, 83, 0.1); color: #34A853;">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h4>Intelligent Automation</h4>
+            <p>Transform manual workflows into smart, self-optimizing processes that learn and improve over time.</p>
+        </div>
+        <div class="feature-card">
+            <div class="feature-icon" style="background: rgba(142, 36, 170, 0.1); color: #8E24AA;">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <h4>Predictive Analytics</h4>
+            <p>Turn raw data into strategic foresight — surfacing insights before they become obvious.</p>
+        </div>
+    </div>
+
+    <!-- Section 2 — Scale -->
+    <div class="blog-section">
+        <div class="section-eyebrow" style="color: #34A853;">
+            <i class="fas fa-rocket"></i> SCALING ADOPTION
+        </div>
+        <h2>We Are Deploying — And <span class="gradient-text">Accelerating</span></h2>
+        <p>
+            Like many forward-thinking enterprises, <strong>we are actively deploying AI solutions
+                across our organization and aggressively accelerating both scale and adoption.</strong>
+            From claims processing to customer engagement, from internal copilots to real-time
+            analytics engines — AI is being woven into the fabric of how we operate.
+        </p>
+        <p>
+            Each deployment brings measurable improvements. But as the number of AI initiatives
+            grows from a handful to dozens, a critical question emerges: <em>how do we know which
+                investments are truly paying off?</em>
+        </p>
+    </div>
+
+    <!-- Section 3 — The Problem -->
+    <div class="blog-section">
+        <div class="section-eyebrow" style="color: #EA4335;">
+            <i class="fas fa-bullseye"></i> THE BOTTOM LINE
+        </div>
+        <h2>Every Benefit Must Boil Down to <span class="gradient-text">Dollars</span></h2>
+        <p>
+            <strong>It is critical to keep a sharp eye on how these investments are producing results.</strong>
+            Innovation for innovation's sake doesn't sustain funding. Whether we're measuring
+            productivity gains in hours saved, error reduction rates, or new revenue channels
+            unlocked — <strong>all benefits must ultimately translate into two universal metrics:
+                dollars saved, or revenue increased.</strong>
+        </p>
+        <p>
+            Leadership needs a single, trusted view that answers: <em>"What is the quantifiable
+                return on our AI portfolio?"</em> — not in abstract terms, but in actual financial impact.
+        </p>
+
+        <div class="highlight-quote">
+            <p>"If you can't measure it in dollars, you can't defend it in a board room."</p>
+            <p class="quote-author">— Enterprise AI Strategy Principle</p>
+        </div>
+    </div>
+
+    <!-- Stat Row -->
+    <div class="stat-row">
+        <div class="stat-block">
+            <div class="stat-number">100%</div>
+            <div class="stat-desc">Trackable</div>
+        </div>
+        <div class="stat-block">
+            <div class="stat-number">2</div>
+            <div class="stat-desc">Core Metrics</div>
+        </div>
+        <div class="stat-block">
+            <div class="stat-number">Real‑time</div>
+            <div class="stat-desc">API Reporting</div>
+        </div>
+        <div class="stat-block">
+            <div class="stat-number">On‑Prem</div>
+            <div class="stat-desc">Data Center Ready</div>
+        </div>
+    </div>
+
+    <!-- Section 4 — The Question -->
+    <div class="blog-section">
+        <div class="section-eyebrow" style="color: #FBBC05;">
+            <i class="fas fa-question-circle"></i> THE BIG QUESTION
+        </div>
+        <h2>Can We <span class="gradient-text">Actually Track This?</span></h2>
+        <p>
+            This is perhaps the most common objection: <strong>"Sounds great, but can we really track
+                AI value at scale?"</strong>
+        </p>
+        <p>
+            <strong>The simple answer is: yes.</strong>
+        </p>
+        <p>
+            The challenge was never about whether tracking is possible — it was about having the
+            right system in place. A system that can ingest metrics from diverse AI applications
+            (chatbots, copilots, automation pipelines, agentic workflows), normalize them into
+            financial outcomes, and present a unified view to leadership. That's exactly what
+            we set out to build.
+        </p>
+    </div>
+
+    <!-- Section 5 — The Solution -->
+    <div class="blog-section">
+        <div class="section-eyebrow" style="color: #8E24AA;">
+            <i class="fas fa-wand-magic-sparkles"></i> THE SOLUTION
+        </div>
+        <h2>We Asked AI Agents to <span class="gradient-text">Build the Tracker</span></h2>
+        <p>
+            In true AI-first fashion, <strong>we asked our own AI agents to build an enterprise-grade
+                value tracker</strong> — a platform that could run inside our data center, collect metrics
+            from every deployed AI initiative, and surface the consolidated financial impact
+            directly to our CTO and CFO.
+        </p>
+        <p>
+            The result is the <strong>AI Value Board</strong>: an intelligent, self-hosted tracking
+            platform with real-time webhook integrations, automated audit logging, trend analysis,
+            and executive-ready dashboards — all built for the enterprise.
+        </p>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <h4>Register AI Initiatives</h4>
+                <p>Catalog every AI project with its owner, department, technology stack, and expected benefit type.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Collect Realized Benefits</h4>
+                <p>AI applications report their measurable outcomes via REST webhooks or manual entry — every month.</p>
+            </div>
+            <div class="timeline-item">
+                <h4>Track &amp; Analyze Trends</h4>
+                <p>View productivity gains and revenue impact across functions, technologies, and time — in real-time.
+                </p>
+            </div>
+            <div class="timeline-item">
+                <h4>Present to Leadership</h4>
+                <p>Executive dashboards make the case for continued investment — with data, not opinions.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Banner -->
+    <div class="cta-banner">
+        <h2>Ready to See the Value?</h2>
+        <p>Open the AI Value Board and explore how AI investments translate to real financial impact.</p>
+        <a href="{% url 'dashboard' %}" class="cta-primary" style="display: inline-block;">
+            <i class="fas fa-chart-pie"></i>&nbsp; Launch Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}
