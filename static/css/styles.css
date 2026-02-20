@@ -348,6 +348,7 @@ footer .container {
 .footer-links {
     display: flex;
     gap: 1.5rem;
+    align-items: center;
 }
 
 .footer-links a {

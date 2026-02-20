@@ -65,13 +65,15 @@
                     <a href="{% url 'webhook_docs' %}" class="dropdown-item" title="API Webhook Documentation">
                         <i class="fas fa-plug"></i> API Specs
                     </a>
+                    <a href="{% url 'bulk_config' %}" class="dropdown-item" title="Bulk import/export settings">
+                        <i class="fas fa-file-csv"></i> Bulk Config
+                    </a>
                     <a href="{% url 'audit_list' %}" class="dropdown-item" title="System Audit Logs">
                         <i class="fas fa-history"></i> Audit Logs
                     </a>
                 </div>
             </div>
 
-            <a href="{% url 'about' %}" class="btn-text">About</a>
         </div>
     </nav>
 
@@ -94,6 +96,7 @@
                 2026 - AI Value Board | Office of CTO & CFO
             </div>
             <div class="footer-links">
+                <a href="{% url 'about' %}" class="btn-text" style="font-size: 0.9rem; opacity: 0.8;">About</a>
                 {% block footer_links %}{% endblock %}
             </div>
         </div>

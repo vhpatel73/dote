@@ -16,6 +16,7 @@ urlpatterns = [
     path('webhook/report/', views.RealtimeReportingWebhookView.as_view(), name='webhook_report'),
     path('webhook/docs/', views.WebhookDocsView.as_view(), name='webhook_docs'),
     path('webhook/docs/<int:pk>/', views.WebhookDocsView.as_view(), name='webhook_docs_personal'),
+    path('bulk-config/', views.BulkConfigView.as_view(), name='bulk_config'),
     path('audit/', views.AuditLogListView.as_view(), name='audit_list'),
     path('about/', views.AboutView.as_view(), name='about'),
 ]

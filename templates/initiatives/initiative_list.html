@@ -45,8 +45,10 @@
                         {% else %}<i class="fas fa-sort" style="opacity: 0.3;"></i>{% endif %}
                     </a>
                 </th>
-                <th style="text-align: right; padding-right: 1.5rem;">Productivity Gain ($)</th>
-                <th style="text-align: right; padding-right: 1.5rem;">Revenue Impact ($)</th>
+                <th style="text-align: right; padding-right: 1.5rem;">Productivity Gain<br /><span class="text-tiny"
+                        style="font-size: xx-small;">($ Since inception)</span></th>
+                <th style="text-align: right; padding-right: 1.5rem;">Revenue Impact<br /><span class="text-tiny"
+                        style="font-size: xx-small;">($ Since inception)</span></th>
                 <th style="text-align: center;"> + Realized Benefit</th>
             </tr>
         </thead>
@@ -58,29 +60,31 @@
                         <span class="status-dot dot-{{ initiative.status|lower|cut:' ' }}"
                             title="{{ initiative.status }}"></span>
                         <a href="{% url 'initiative_edit' initiative.pk %}" class="edit-link">
-                            <strong style="font-size: 0.9rem;">{{ initiative.name }}</strong>
+                            <strong style="font-size: 0.85rem;">{{ initiative.name }}</strong>
                         </a>
                     </div>
+                    <p style="margin: 0 1.5rem;">
+                        <span class="badge"
+                            style="font-size: 0.5rem; background: rgba(0, 0, 0, 0.03); color: var(--text-secondary); border: 1px solid rgba(0, 0, 0, 0.05); padding: 0.1rem 0.4rem; text-transform: none;">
+                            {{ initiative.benefit_name }}</span>
+                    </p>
                 </td>
                 <td style="font-size: 0.85rem;">
                     <div style="font-weight: 600; margin-bottom: 4px;">{{ initiative.department }}</div>
                     <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                         <span class="badge"
-                            style="font-size: 0.6rem; background: rgba(0, 122, 255, 0.05); color: var(--primary-color); border: 1px solid rgba(0, 122, 255, 0.1); padding: 0.1rem 0.4rem; text-transform: none;">
+                            style="font-size: 0.5rem; background: rgba(0, 122, 255, 0.05); color: var(--primary-color); border: 1px solid rgba(0, 122, 255, 0.1); padding: 0.1rem 0.4rem; text-transform: none;">
                             {{ initiative.technology }}</span>
-                        <span class="badge"
-                            style="font-size: 0.6rem; background: rgba(0, 0, 0, 0.03); color: var(--text-secondary); border: 1px solid rgba(0, 0, 0, 0.05); padding: 0.1rem 0.4rem; text-transform: none;">
-                            {{ initiative.benefit_name }}</span>
                     </div>
                 </td>
-                <td style="font-weight: 600; color: var(--primary-color); text-align: right; padding-right: 1.5rem;">
+                <td style="font-size: 0.85rem;font-weight: 500; text-align: right; padding-right: 1.5rem;">
                     {% if initiative.total_productivity > 0 %}
                     ${{ initiative.total_productivity|floatformat:2|intcomma}}
                     {% else %}
                     -
                     {% endif %}
                 </td>
-                <td style="font-weight: 600; color: #166534; text-align: right; padding-right: 1.5rem;">
+                <td style="font-size: 0.85rem;font-weight: 500; text-align: right; padding-right: 1.5rem;">
                     {% if initiative.total_revenue > 0 %}
                     ${{ initiative.total_revenue|floatformat:2|intcomma }}
                     {% else %}
@@ -261,41 +265,4 @@
         text-transform: uppercase;
     }
 </style>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-    function updateFileName(input) {
-        const fileName = input.files[0] ? input.files[0].name : 'Choose CSV';
-        document.getElementById('file-name').textContent = fileName;
-    }
-</script>
-{% endblock %}
-
-{% block footer_links %}
-<div style="display: flex; align-items: center; gap: 2rem;">
-    <div style="display: flex; gap: 1rem;">
-        <a href="{% url 'csv_sample' %}" style="color: var(--text-secondary); font-size: 0.8rem;">
-            <i class="fas fa-file-download"></i> Sample CSV
-        </a>
-        <a href="{% url 'csv_download' %}" style="color: var(--text-secondary); font-size: 0.8rem;">
-            <i class="fas fa-download"></i> Export CSV
-        </a>
-    </div>
-
-    <form action="{% url 'csv_upload' %}" method="post" enctype="multipart/form-data"
-        style="display: flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.5); padding: 0.4rem; border-radius: 12px; border: 1px dashed var(--border-color);">
-        {% csrf_token %}
-        <label class="custom-file-upload"
-            style="padding: 0.3rem 0.75rem; font-size: 0.75rem; border: none; background: transparent;">
-            <i class="fas fa-file-csv"></i>
-            <span id="file-name">Import CSV</span>
-            <input type="file" name="csv_file" required onchange="updateFileName(this)"
-                style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
-        </label>
-        <button type="submit" class="btn-primary" style="padding: 0.4rem 0.75rem; font-size: 0.75rem;">
-            <i class="fas fa-upload"></i> Upload
-        </button>
-    </form>
-</div>
 {% endblock %}

@@ -522,3 +522,8 @@ class AuditLogListView(ListView):
 class AboutView(View):
     def get(self, request):
         return render(request, 'initiatives/about.html')
+
+from django.views.generic import TemplateView
+
+class BulkConfigView(TemplateView):
+    template_name = 'initiatives/bulk_config.html'

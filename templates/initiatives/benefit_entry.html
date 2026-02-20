@@ -29,9 +29,9 @@
         <p class="text-secondary">{{ initiative.description|truncatechars:160 }}</p>
     </div>
 
-    <div class="grid">
-        <div class="card glass" id="entry-card">
-            <h3 id="form-title">Record Monthly Tracking</h3>
+    <div class="grid" style="grid-template-columns: 1fr 2fr;">
+        <div class="card glass" id="entry-card" style="border: 3px solid #2446aa; border-radius: 8px !important;">
+            <h3 id="form-title">Record Monthly Value</h3>
             <form method="post" style="margin-top: 1.5rem;" id="benefit-form">
                 {% csrf_token %}
                 <div class="form-group" style="margin-bottom: 1rem;">
@@ -112,27 +112,30 @@
                             {% else %}
                             <td>${{ entry.revenue_impact|floatformat:2|intcomma }}</td>
                             {% endif %}
-                            <td style="display: flex; gap: 0.5rem; align-items: center;">
-                                {% if initiative.benefit_name == 'New Business' %}
-                                <button type="button" class="action-btn edit-entry-btn"
-                                    style="border: none; cursor: pointer;" data-month="{{ entry.month|date:'Y-m' }}"
-                                    data-kpi="{{ entry.kpi_value }}" data-rev="{{ entry.revenue_impact }}" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                {% else %}
-                                <button type="button" class="action-btn edit-entry-btn"
-                                    style="border: none; cursor: pointer;" data-month="{{ entry.month|date:'Y-m' }}"
-                                    data-kpi="{{ entry.kpi_value }}" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                {% endif %}
-                                <form action="{% url 'benefit_delete' entry.pk %}" method="post"
-                                    onsubmit="return confirm('Delete this entry?')" style="margin: 0;">
-                                    {% csrf_token %}
-                                    <button type="submit" class="action-btn delete" title="Delete">
-                                        <i class="fas fa-trash"></i>
+                            <td style="justify-content: center;">
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    {% if initiative.benefit_name == 'New Business' %}
+                                    <button type="button" class="action-btn edit-entry-btn"
+                                        style="border: none; cursor: pointer;" data-month="{{ entry.month|date:'Y-m' }}"
+                                        data-kpi="{{ entry.kpi_value }}" data-rev="{{ entry.revenue_impact }}"
+                                        title="Edit">
+                                        <i class="fas fa-edit"></i>
                                     </button>
-                                </form>
+                                    {% else %}
+                                    <button type="button" class="action-btn edit-entry-btn"
+                                        style="border: none; cursor: pointer;" data-month="{{ entry.month|date:'Y-m' }}"
+                                        data-kpi="{{ entry.kpi_value }}" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    {% endif %}
+                                    <form action="{% url 'benefit_delete' entry.pk %}" method="post"
+                                        onsubmit="return confirm('Delete this entry?')" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-btn delete" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         {% empty %}
@@ -166,6 +169,17 @@
         border-radius: 8px;
         border: 1px solid var(--border-color);
         font-size: 1rem;
+    }
+
+    table th,
+    table td {
+        font-size: 0.75rem;
+    }
+
+    @media (max-width: 768px) {
+        .grid {
+            grid-template-columns: 1fr !important;
+        }
     }
 </style>
 
