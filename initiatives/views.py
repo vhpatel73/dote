@@ -7,12 +7,30 @@ from django.contrib import messages
 from django.db.models import Sum, Count, F, ExpressionWrapper, FloatField, Q
 from django.db.models.functions import TruncMonth, Coalesce
 import json
-from .models import Initiative, RealizedBenefit, WebhookAuditLog
+from .models import Initiative, RealizedBenefit, WebhookAuditLog, AuditLog
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from datetime import datetime
 import pandas as pd
 import csv
+
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        return x_forwarded_for.split(',')[0]
+    return request.META.get('REMOTE_ADDR')
+
+def log_audit(request, action, obj_type, obj_name, source='Portal', details=None):
+    user = request.user.username if hasattr(request, 'user') and request.user.is_authenticated else "AnonymousUser"
+    AuditLog.objects.create(
+        action=action,
+        object_type=obj_type,
+        object_name=obj_name,
+        user=user,
+        ip_address=get_client_ip(request),
+        source=source,
+        details=details or {}
+    )
 
 class DashboardView(View):
     def get(self, request):
@@ -218,22 +236,35 @@ class InitiativeCreateView(CreateView):
     template_name = 'initiatives/initiative_form.html'
     success_url = reverse_lazy('initiative_list')
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        log_audit(self.request, 'Create', 'Initiative', self.object.name)
+        return response
+
 class InitiativeUpdateView(UpdateView):
     model = Initiative
     fields = '__all__'
     template_name = 'initiatives/initiative_form.html'
     success_url = reverse_lazy('initiative_list')
 
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        log_audit(self.request, 'Update', 'Initiative', self.object.name)
+        return response
+
 class InitiativeDeleteView(View):
     def post(self, request, pk):
         initiative = get_object_or_404(Initiative, pk=pk)
+        name = initiative.name
         initiative.delete()
+        log_audit(request, 'Delete', 'Initiative', name)
         messages.success(request, "Initiative deleted successfully.")
         return redirect('initiative_list')
 
 class RealizedBenefitEntryView(View):
     def get(self, request, pk):
         initiative = get_object_or_404(Initiative, pk=pk)
+        log_audit(request, 'View', 'Initiative', f"{initiative.name} (Benefit Entry)")
         history = RealizedBenefit.objects.filter(initiative=initiative).order_by('-month')[:12]
         return render(request, 'initiatives/benefit_entry.html', {
             'initiative': initiative,
@@ -248,7 +279,7 @@ class RealizedBenefitEntryView(View):
         
         month = datetime.strptime(month_str, '%Y-%m').date()
         
-        RealizedBenefit.objects.update_or_create(
+        benefit, created = RealizedBenefit.objects.update_or_create(
             initiative=initiative,
             month=month,
             defaults={
@@ -257,6 +288,9 @@ class RealizedBenefitEntryView(View):
             }
         )
         
+        action = 'Create' if created else 'Update'
+        log_audit(request, action, 'Benefit', f"Benefit for {initiative.name} ({month_str})")
+        
         messages.success(request, "Monthly tracking updated.")
         return redirect('benefit_entry', pk=pk)
 
@@ -264,7 +298,9 @@ class RealizedBenefitDeleteView(View):
     def post(self, request, pk):
         benefit = get_object_or_404(RealizedBenefit, pk=pk)
         initiative_pk = benefit.initiative.pk
+        name = f"Benefit for {benefit.initiative.name} ({benefit.month})"
         benefit.delete()
+        log_audit(request, 'Delete', 'Benefit', name)
         messages.success(request, "Entry deleted.")
         return redirect('benefit_entry', pk=initiative_pk)
 
@@ -288,6 +324,7 @@ class CSVDownloadView(View):
                 initiative.kpi_name, initiative.multiplier_minutes, initiative.multiplier_dollars
             ])
             
+        log_audit(request, 'Export', 'Initiative', 'Full System Export', details={'count': Initiative.objects.count()})
         return response
 
 class CSVUploadView(View):
@@ -301,6 +338,7 @@ class CSVUploadView(View):
         io_string = io.StringIO(decoded_file)
         next(io_string) # Skip header
         
+        count = 0
         for column in csv.reader(io_string, delimiter=',', quotechar='"'):
             if len(column) < 14:
                 continue
@@ -320,11 +358,12 @@ class CSVUploadView(View):
                     'benefit_name': column[10],
                     'kpi_name': column[11],
                     'multiplier_minutes': float(column[12] or 0),
-                    'multiplier_dollars': float(column[13] or 0)
                 }
             )
+            count += 1
             
-        messages.success(request, "CSV imported successfully.")
+        log_audit(request, 'Import', 'Initiative', 'Bulk CSV Data Upload', details={'imported_rows': count})
+        messages.success(request, f"CSV imported successfully ({count} initiatives).")
         return redirect('initiative_list')
 
 class SampleCSVDownloadView(View):
@@ -343,6 +382,8 @@ class SampleCSVDownloadView(View):
             'it-claims@example.com', 'Claims', 'In-progress', 'OpenAI GPT-4', 'Reduce response time by 50%',
             'Productivity Gain', 'Calls Handled', '5.0', '25.0'
         ])
+        
+        log_audit(request, 'Export', 'Initiative', 'Sample Template Format')
         return response
 @method_decorator(csrf_exempt, name='dispatch')
 class RealtimeReportingWebhookView(View):
@@ -421,6 +462,10 @@ class RealtimeReportingWebhookView(View):
                 response_body={'success': True, 'initiative': initiative.name, 'month': str(month)},
                 ip_address=ip
             )
+            
+            action = 'Create' if created else 'Update'
+            log_audit(request, action, 'Benefit', f"Benefit for {initiative.name} ({month_str})", source='API')
+
             return JsonResponse({'success': True, 'message': 'Benefit reported successfully'})
         
         except Exception as e:
@@ -451,3 +496,25 @@ class WebhookDocsView(View):
             'base_url': base_url
         }
         return render(request, 'initiatives/webhook_docs.html', context)
+
+class AuditLogListView(ListView):
+    model = AuditLog
+    template_name = 'initiatives/audit_list.html'
+    context_object_name = 'audit_logs'
+    paginate_by = 50
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Simple search filtering
+        query = self.request.GET.get('q')
+        if query:
+            queryset = queryset.filter(
+                Q(action__icontains=query) |
+                Q(object_type__icontains=query) |
+                Q(object_name__icontains=query) |
+                Q(user__icontains=query) |
+                Q(source__icontains=query)
+            )
+            
+        return queryset

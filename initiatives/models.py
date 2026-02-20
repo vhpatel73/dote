@@ -107,3 +107,33 @@ class RealizedBenefit(models.Model):
 
     def __str__(self):
         return f"{self.initiative.name} - {self.month}"
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('Create', 'Create'),
+        ('Update', 'Update'),
+        ('Delete', 'Delete'),
+        ('View', 'View'),
+        ('Export', 'Export'),
+        ('Import', 'Import'),
+    ]
+    
+    SOURCE_CHOICES = [
+        ('Portal', 'Portal'),
+        ('API', 'API'),
+    ]
+    
+    action = models.CharField(max_length=16, choices=ACTION_CHOICES)
+    object_type = models.CharField(max_length=32) # 'Initiative' or 'Benefit'
+    object_name = models.CharField(max_length=256)
+    user = models.CharField(max_length=64, default="AnonymousUser")
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    source = models.CharField(max_length=16, choices=SOURCE_CHOICES, default='Portal')
+    details = models.JSONField(null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+        
+    def __str__(self):
+        return f"{self.action} {self.object_type}: {self.object_name} via {self.source} at {self.timestamp}"

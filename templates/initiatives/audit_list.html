@@ -1,0 +1,163 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="audit-header">
+    <div style="margin-bottom: 1rem;">
+        <h1>System <span class="gradient-text">Audit Log</span></h1>
+        <p class="text-secondary">Comprehensive history of all additions, modifications, and deletions.</p>
+    </div>
+
+    <div class="search-container">
+        <form method="GET" action="{% url 'audit_list' %}" style="display: flex; gap: 0.5rem; width: 100%;">
+            <input type="text" name="q" placeholder="Search logs..." value="{{ request.GET.q|default:'' }}"
+                class="search-input">
+            <button type="submit" class="btn-primary search-btn">Search</button>
+            {% if request.GET.q %}
+            <a href="{% url 'audit_list' %}" class="btn-secondary search-btn text-center clear-btn">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card glass" style="overflow-x: auto;">
+    <table class="analytic-table">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Action</th>
+                <th>Object Type</th>
+                <th>Object Details</th>
+                <th>User / System</th>
+                <th>Source</th>
+                <th>IP Address</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in audit_logs %}
+            <tr>
+                <td style="white-space: nowrap; color: var(--text-secondary); font-size: 0.85rem;">{{
+                    log.timestamp|date:"M j, Y, g:i a" }}</td>
+                <td>
+                    {% if log.action == 'Create' %}
+                    <span class="badge" style="background: rgba(52, 168, 83, 0.1); color: #34A853;"><i
+                            class="fas fa-plus-circle"></i> Create</span>
+                    {% elif log.action == 'Update' %}
+                    <span class="badge" style="background: rgba(251, 188, 5, 0.1); color: #FBBC05;"><i
+                            class="fas fa-edit"></i> Update</span>
+                    {% elif log.action == 'Delete' %}
+                    <span class="badge" style="background: rgba(234, 67, 53, 0.1); color: #EA4335;"><i
+                            class="fas fa-trash"></i> Delete</span>
+                    {% elif log.action == 'Export' %}
+                    <span class="badge" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;"><i
+                            class="fas fa-file-export"></i> Export</span>
+                    {% elif log.action == 'Import' %}
+                    <span class="badge" style="background: rgba(0, 161, 224, 0.1); color: #00A1E0;"><i
+                            class="fas fa-file-import"></i> Import</span>
+                    {% else %}
+                    <span class="badge" style="background: rgba(66, 133, 244, 0.1); color: #4285F4;"><i
+                            class="fas fa-eye"></i> View</span>
+                    {% endif %}
+                </td>
+                <td style="font-weight: 600;">{{ log.object_type }}</td>
+                <td>{{ log.object_name }}</td>
+                <td><i class="fas fa-user" style="color: var(--text-secondary); opacity: 0.5;"></i> {{ log.user }}</td>
+                <td>
+                    {% if log.source == 'API' %}
+                    <span class="badge" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;">API Request</span>
+                    {% else %}
+                    <span class="badge" style="border: 1px solid var(--border-color); color: var(--text-secondary);">Web
+                        Portal</span>
+                    {% endif %}
+                </td>
+                <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);">{{
+                    log.ip_address|default:"N/A" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 3rem; color: var(--text-secondary);">
+                    <i class="fas fa-history"
+                        style="font-size: 2rem; opacity: 0.3; margin-bottom: 1rem; display: block;"></i>
+                    No audit logs found matching your criteria.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div
+        style="padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border-color);">
+        <span class="text-secondary" style="font-size: 0.85rem;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
+        <div style="display: flex; gap: 0.5rem;">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+                class="btn-secondary" style="padding: 0.4rem 0.8rem; text-decoration: none;">&laquo; Previous</a>
+            {% endif %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"
+                class="btn-secondary" style="padding: 0.4rem 0.8rem; text-decoration: none;">Next &raquo;</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .audit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .search-container {
+        width: auto;
+    }
+
+    .search-input {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.8);
+        font-family: var(--font-sans);
+        min-width: 250px;
+    }
+
+    .search-btn {
+        padding: 0.5rem 1rem;
+    }
+
+    .text-center {
+        text-align: center;
+        text-decoration: none;
+    }
+
+    @media (max-width: 768px) {
+        .audit-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 1rem;
+        }
+
+        .search-container {
+            width: 100%;
+        }
+
+        .search-input {
+            width: 100%;
+            min-width: 0;
+            flex-grow: 1;
+        }
+
+        .clear-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
