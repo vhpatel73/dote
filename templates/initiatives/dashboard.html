@@ -256,6 +256,7 @@
 
     <!-- Functional Pane -->
     <div id="pane-func" class="tab-pane active">
+        {% if dept_stats %}
         <div class="dashboard-table-container">
             <table class="analytic-table">
                 <thead>
@@ -295,6 +296,21 @@
                 <canvas id="deptChart"></canvas>
             </div>
         </div>
+        {% else %}
+        <div
+            style="width: 100%; text-align: center; padding: 4rem 2rem; border-radius: 16px; background: rgba(52, 168, 83, 0.05); color: #34A853; border: 1px dashed rgba(52, 168, 83, 0.2);">
+            <svg width="150" height="80" viewBox="0 0 150 80"
+                style="margin-bottom: 1rem; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
+                <!-- Light green line artwork -->
+                <path d="M10 60 Q 40 10, 75 40 T 140 20" opacity="0.6" stroke-dasharray="4 4" />
+                <path d="M10 70 Q 50 20, 85 50 T 140 30" stroke-width="3" />
+                <circle cx="140" cy="30" r="5" fill="currentColor" />
+            </svg>
+            <h3 style="margin-bottom: 0.5rem; font-weight: 600;">Nothing to display</h3>
+            <p style="opacity: 0.8; font-size: 0.9rem;">Add an initiative and start tracking data to populate this
+                functional view.</p>
+        </div>
+        {% endif %}
     </div>
 
     <!-- Status Pane -->
