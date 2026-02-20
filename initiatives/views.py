@@ -501,7 +501,7 @@ class AuditLogListView(ListView):
     model = AuditLog
     template_name = 'initiatives/audit_list.html'
     context_object_name = 'audit_logs'
-    paginate_by = 50
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = super().get_queryset()

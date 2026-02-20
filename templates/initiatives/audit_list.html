@@ -35,32 +35,43 @@
         <tbody>
             {% for log in audit_logs %}
             <tr>
-                <td style="white-space: nowrap; color: var(--text-secondary); font-size: 0.85rem;">{{
-                    log.timestamp|date:"M j, Y, g:i a" }}</td>
+                <td style="white-space: nowrap; color: var(--text-secondary); font-size: 0.8rem; font-weight: 300;">
+                    {{ log.timestamp|date:"M j, Y, g:i a" }}</td>
                 <td>
                     {% if log.action == 'Create' %}
-                    <span class="badge" style="background: rgba(52, 168, 83, 0.1); color: #34A853;"><i
-                            class="fas fa-plus-circle"></i> Create</span>
+                    <span class="badge"
+                        style="font-family: monospace; font-size: 0.7rem; font-weight: 300; background: rgba(52, 168, 83, 0.1); color: #34A853;"><i
+                            class="fas fa-plus-circle"></i>&nbsp;Create</span>
                     {% elif log.action == 'Update' %}
-                    <span class="badge" style="background: rgba(251, 188, 5, 0.1); color: #FBBC05;"><i
-                            class="fas fa-edit"></i> Update</span>
+                    <span class="badge"
+                        style="font-family: monospace; font-size: 0.7rem; font-weight: 300; background: rgba(251, 188, 5, 0.1); color: #FBBC05;"><i
+                            class="fas fa-edit"></i>&nbsp;Update</span>
                     {% elif log.action == 'Delete' %}
-                    <span class="badge" style="background: rgba(234, 67, 53, 0.1); color: #EA4335;"><i
-                            class="fas fa-trash"></i> Delete</span>
+                    <span class="badge"
+                        style="font-family: monospace; font-size: 0.7rem; font-weight: 300; background: rgba(234, 67, 53, 0.1); color: #EA4335;"><i
+                            class="fas fa-trash"></i>&nbsp;Delete</span>
                     {% elif log.action == 'Export' %}
-                    <span class="badge" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;"><i
-                            class="fas fa-file-export"></i> Export</span>
+                    <span class="badge"
+                        style="font-family: monospace; font-size: 0.7rem; font-weight: 300; background: rgba(143, 0, 255, 0.1); color: #8F00FF;"><i
+                            class="fas fa-file-export"></i>&nbsp;Export</span>
                     {% elif log.action == 'Import' %}
-                    <span class="badge" style="background: rgba(0, 161, 224, 0.1); color: #00A1E0;"><i
-                            class="fas fa-file-import"></i> Import</span>
+                    <span class="badge"
+                        style="font-family: monospace; font-size: 0.7rem; font-weight: 300; background: rgba(0, 161, 224, 0.1); color: #00A1E0;"><i
+                            class="fas fa-file-import"></i>&nbsp;Import</span>
                     {% else %}
-                    <span class="badge" style="background: rgba(66, 133, 244, 0.1); color: #4285F4;"><i
-                            class="fas fa-eye"></i> View</span>
+                    <span class="badge"
+                        style="font-family: monospace; font-size: 0.7rem; font-weight: 300; background: rgba(66, 133, 244, 0.1); color: #4285F4;"><i
+                            class="fas fa-eye"></i>&nbsp;View</span>
                     {% endif %}
                 </td>
-                <td style="font-weight: 600;">{{ log.object_type }}</td>
-                <td>{{ log.object_name }}</td>
-                <td><i class="fas fa-user" style="color: var(--text-secondary); opacity: 0.5;"></i> {{ log.user }}</td>
+                <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);">
+                    {{ log.object_type }}
+                </td>
+                <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);">
+                    {{ log.object_name }}
+                </td>
+                <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);"><i
+                        class="fas fa-user" style="color: var(--text-secondary); opacity: 0.5;"></i> {{ log.user }}</td>
                 <td>
                     {% if log.source == 'API' %}
                     <span class="badge" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;">API Request</span>
@@ -69,8 +80,8 @@
                         Portal</span>
                     {% endif %}
                 </td>
-                <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);">{{
-                    log.ip_address|default:"N/A" }}</td>
+                <td style="font-family: monospace; font-size: 0.8rem; color: var(--text-secondary);">
+                    {{ log.ip_address|default:"N/A" }}</td>
             </tr>
             {% empty %}
             <tr>
