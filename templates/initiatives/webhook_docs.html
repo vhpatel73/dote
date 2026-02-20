@@ -98,6 +98,8 @@
                             style="color: #ED8B00;"></i> Java</button>
                     <button class="tab-btn" onclick="openCodeTab(event, 'lang-salesforce')"><i class="fab fa-salesforce"
                             style="color: #00A1E0;"></i> Salesforce</button>
+                    <button class="tab-btn" onclick="openCodeTab(event, 'lang-gosu')"><i class="fas fa-gem"
+                            style="color: #2F8B70;"></i> Gosu</button>
                 </div>
 
                 <!-- Python Example -->
@@ -231,6 +233,47 @@ public class WebhookIntegration {
         System.debug(response.getBody());
     }
 }</code></pre>
+                </div>
+
+                <!-- Gosu Example -->
+                <div id="lang-gosu" class="code-content">
+                    <div class="code-header">
+                        <span>WebhookCallout.gs</span>
+                        <i class="far fa-copy" onclick="copySnippet('code-gosu')" style="cursor: pointer;"
+                            title="Copy Code"></i>
+                    </div>
+                    <pre><code id="code-gosu">uses java.net.URL
+uses java.net.HttpURLConnection
+uses java.io.OutputStreamWriter
+uses java.io.BufferedReader
+uses java.io.InputStreamReader
+
+var endpoint = new URL("{{ webhook_url }}")
+var key = "{% if initiative %}{{ initiative.webhook_key }}{% else %}YOUR_SECRET_KEY{% endif %}"
+
+var conn = endpoint.openConnection() as HttpURLConnection
+conn.RequestMethod = "POST"
+conn.setRequestProperty("Content-Type", "application/json")
+conn.DoOutput = true
+
+var payload = "{\"webhook_key\": \"${key}\", \"kpi_value\": 150.5, \"revenue_impact\": 0, \"month\": \"2024-03\"}"
+
+var writer = new OutputStreamWriter(conn.OutputStream)
+writer.write(payload)
+writer.flush()
+writer.close()
+
+var reader = new BufferedReader(new InputStreamReader(conn.InputStream))
+var response = new StringBuilder()
+var line = reader.readLine()
+while (line != null) {
+  response.append(line)
+  line = reader.readLine()
+}
+reader.close()
+
+print("Status: ${conn.ResponseCode}")
+print(response.toString())</code></pre>
                 </div>
             </section>
         </div>
