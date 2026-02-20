@@ -15,7 +15,9 @@
             <div class="stat-icon-box" style="background: rgba(66, 133, 244, 0.1); color: #4285F4;">
                 <i class="fas fa-vault"></i>
             </div>
-            <div class="stat-label">Total Initiatives</div>
+            <div class="stat-text">
+                <div class="stat-label">Total Initiatives</div>
+            </div>
         </div>
         <div class="stat-value">{{ total_initiatives }}</div>
     </div>
@@ -24,7 +26,9 @@
             <div class="stat-icon-box" style="background: rgba(52, 168, 83, 0.1); color: #34A853;">
                 <i class="fas fa-rocket"></i>
             </div>
-            <div class="stat-label">Live Capabilities</div>
+            <div class="stat-text">
+                <div class="stat-label">Live Capabilities</div>
+            </div>
         </div>
         <div class="stat-value">{{ live_systems }}</div>
     </div>
@@ -34,10 +38,12 @@
             <div class="stat-icon-box" style="background: rgba(251, 188, 5, 0.1); color: #FBBC05;">
                 <i class="fas fa-stopwatch"></i>
             </div>
-            <div class="stat-label">Productivity Gain</div>
+            <div class="stat-text">
+                <div class="stat-label">Productivity Gain</div>
+                <span class="text-tiny">Since Inception</span>
+            </div>
         </div>
         <div class="stat-value">${{ total_productivity|floatformat:2|intcomma }}</div>
-        <span class="text-tiny">Since Inception</span>
     </div>
     <div class="stat-card glass clickable-card"
         onclick="location.href='{% url 'benefit_analysis' %}?tab=initiative&sort=rev';">
@@ -45,10 +51,12 @@
             <div class="stat-icon-box" style="background: rgba(234, 67, 53, 0.1); color: #EA4335;">
                 <i class="fas fa-file-invoice"></i>
             </div>
-            <div class="stat-label">Revenue Impact ($)</div>
+            <div class="stat-text">
+                <div class="stat-label">Revenue Impact ($)</div>
+                <span class="text-tiny">Since Inception</span>
+            </div>
         </div>
         <div class="stat-value">${{ total_revenue|floatformat:2|intcomma }}</div>
-        <span class="text-tiny">Since Inception</span>
     </div>
     <div class="stat-card glass clickable-card total-impact-card"
         onclick="location.href='{% url 'benefit_analysis' %}?tab=month';">
@@ -56,10 +64,12 @@
             <div class="stat-icon-box" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;">
                 <i class="fas fa-signal"></i>
             </div>
-            <div class="stat-label">Total Impact</div>
+            <div class="stat-text">
+                <div class="stat-label">Total Impact</div>
+                <span class="text-tiny">Since Inception</span>
+            </div>
         </div>
         <div class="stat-value">${{ total_overall|floatformat:2|intcomma }}</div>
-        <div class="text-tiny">Since Inception</div>
     </div>
 </div>
 
@@ -76,6 +86,14 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
+    }
+
+    .stat-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.1rem;
+        align-items: flex-start;
+        text-align: left;
     }
 
     .stat-icon-box {
