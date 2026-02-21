@@ -132,9 +132,12 @@ class BenefitAnalysisView(View):
 
         # 2. Tabular Data - Group by Initiative
         initiative_stats = RealizedBenefit.objects.values(
+            'initiative__id',
             'initiative__name', 
-            'initiative__department'
+            'initiative__department',
+            'initiative__kpi_name'
         ).annotate(
+            total_kpi=Coalesce(Sum('kpi_value'), 0.0),
             prod_gain=Coalesce(Sum(F('kpi_value') * F('initiative__multiplier_minutes') * F('initiative__multiplier_dollars')), 0.0),
             rev_impact=Coalesce(Sum('revenue_impact'), 0.0)
         ).annotate(
@@ -337,6 +340,34 @@ class CSVDownloadView(View):
             ])
             
         log_audit(request, 'Export', 'Initiative', 'Full System Export', details={'count': Initiative.objects.count()})
+        return response
+
+class BenefitCSVDownloadView(View):
+    def get(self, request):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="benefits_export.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow([
+            'Initiative Name', 'Department', 'Month', 'KPI Name', 'KPI Value', 
+            'Minutes Saved', 'Productivity Gain ($)', 'Revenue Impact ($)'
+        ])
+        
+        benefits = RealizedBenefit.objects.select_related('initiative').all().order_by('-month')
+        
+        for benefit in benefits:
+            writer.writerow([
+                benefit.initiative.name,
+                benefit.initiative.department,
+                benefit.month.strftime('%Y-%m'),
+                benefit.initiative.kpi_name,
+                benefit.kpi_value,
+                benefit.calculated_minutes,
+                benefit.calculated_dollars,
+                benefit.revenue_impact
+            ])
+            
+        log_audit(request, 'Export', 'Benefit', 'Full Benefit Export', details={'count': benefits.count()})
         return response
 
 class CSVUploadView(View):

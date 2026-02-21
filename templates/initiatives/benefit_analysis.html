@@ -37,14 +37,14 @@
                 <tbody>
                     {% for stat in table_by_month %}
                     <tr>
-                        <td style="font-weight: 600;">{{ stat.month_trunc|date:"F Y" }}</td>
-                        <td style="text-align: right; color: var(--primary-color);">
+                        <td style="font-size: 0.75rem; font-weight: 600;">{{ stat.month_trunc|date:"F Y" }}</td>
+                        <td style="text-align: right; color: var(--primary-color); font-size: 0.75rem;">
                             ${{ stat.prod_gain|floatformat:2|intcomma }}
                         </td>
-                        <td style="text-align: right; color: #34A853;">
+                        <td style="text-align: right; color: #34A853; font-size: 0.75rem;">
                             ${{ stat.rev_impact|floatformat:2|intcomma }}
                         </td>
-                        <td style="text-align: right; font-weight: 700; color: #8F00FF;">
+                        <td style="text-align: right; font-weight: 700; color: #8F00FF; font-size: 0.75rem;">
                             ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
                         </td>
                     </tr>
@@ -66,15 +66,18 @@
                 <div class="trend-card-body">
                     <div class="trend-stat-row">
                         <span class="trend-stat-label">Productivity</span>
-                        <span class="trend-stat-value" style="color: var(--primary-color);">${{ stat.prod_gain|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: var(--primary-color);">
+                            ${{ stat.prod_gain|floatformat:0|intcomma }}</span>
                     </div>
                     <div class="trend-stat-row">
                         <span class="trend-stat-label">Revenue</span>
-                        <span class="trend-stat-value" style="color: #166534;">${{ stat.rev_impact|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: #166534;">
+                            ${{ stat.rev_impact|floatformat:0|intcomma }}</span>
                     </div>
                     <div class="trend-stat-row total">
                         <span class="trend-stat-label">Total Impact</span>
-                        <span class="trend-stat-value" style="color: #8F00FF;">${{ stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">
+                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
                     </div>
                 </div>
             </div>
@@ -88,7 +91,7 @@
                 <thead>
                     <tr>
                         <th>Initiative Name</th>
-                        <th>Department</th>
+                        <th>KPI</th>
                         <th style="text-align: right;">Productivity Gain ($)</th>
                         <th style="text-align: right;">Revenue Impact ($)</th>
                         <th style="text-align: right;">Total Impact ($)</th>
@@ -97,15 +100,24 @@
                 <tbody>
                     {% for stat in table_by_initiative %}
                     <tr>
-                        <td style="font-weight: 600;">{{ stat.initiative__name }}</td>
-                        <td><span class="badge">{{ stat.initiative__department }}</span></td>
-                        <td style="text-align: right; color: var(--primary-color);">
+                        <td style="font-size: 0.75rem; font-weight: 600;">
+                            <a href="{% url 'benefit_entry' stat.initiative__id %}"
+                                style="text-decoration: none; color: inherit;" class="edit-link">
+                                {{ stat.initiative__name }}
+                            </a>
+                        </td>
+                        <td style="font-size: 0.75rem;">
+                            <span style="font-weight: 600;">{{ stat.total_kpi|floatformat:0|intcomma }}</span>
+                            <span style="font-size: 0.65rem; color: var(--text-secondary); margin-left: 4px;">
+                                {{ stat.initiative__kpi_name|default:"KPI" }}</span>
+                        </td>
+                        <td style="text-align: right; color: var(--primary-color); font-size: 0.75rem;">
                             ${{ stat.prod_gain|floatformat:2|intcomma }}
                         </td>
-                        <td style="text-align: right; color: #34A853;">
+                        <td style="text-align: right; color: #34A853; font-size: 0.75rem;">
                             ${{ stat.rev_impact|floatformat:2|intcomma }}
                         </td>
-                        <td style="text-align: right; font-weight: 700; color: #8F00FF;">
+                        <td style="text-align: right; font-weight: 700; color: #8F00FF; font-size: 0.75rem;">
                             ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
                         </td>
                     </tr>
@@ -122,26 +134,48 @@
             {% for stat in table_by_initiative %}
             <div class="mobile-trend-card">
                 <div class="trend-card-header">
-                    <strong>{{ stat.initiative__name }}</strong>
-                    <span class="badge" style="font-size: 0.55rem; padding: 1px 4px;">{{ stat.initiative__department }}</span>
+                    <strong>
+                        <a href="{% url 'benefit_entry' stat.initiative__id %}"
+                            style="text-decoration: none; color: inherit;" class="edit-link">
+                            {{ stat.initiative__name }}
+                        </a>
+                    </strong>
+                    <div>
+                        <span style="font-weight: 600; font-size: 0.8rem;">{{ stat.total_kpi|floatformat:0|intcomma
+                            }}</span>
+                        <span style="font-size: 0.6rem; color: var(--text-secondary); margin-left: 2px;">{{
+                            stat.initiative__kpi_name|default:"KPI" }}</span>
+                    </div>
                 </div>
                 <div class="trend-card-body">
                     <div class="trend-stat-row">
                         <span class="trend-stat-label">Productivity</span>
-                        <span class="trend-stat-value" style="color: var(--primary-color);">${{ stat.prod_gain|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: var(--primary-color);">${{
+                            stat.prod_gain|floatformat:0|intcomma }}</span>
                     </div>
                     <div class="trend-stat-row">
                         <span class="trend-stat-label">Revenue</span>
-                        <span class="trend-stat-value" style="color: #166534;">${{ stat.rev_impact|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: #166534;">${{
+                            stat.rev_impact|floatformat:0|intcomma }}</span>
                     </div>
                     <div class="trend-stat-row total">
                         <span class="trend-stat-label">Total Impact</span>
-                        <span class="trend-stat-value" style="color: #8F00FF;">${{ stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">${{
+                            stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
+    </div>
+
+    <!-- Export Section -->
+    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+        <a href="{% url 'benefit_csv_download' %}" class="btn-secondary"
+            style="font-size: 0.85rem; padding: 0.5rem 1rem; font-weight: 400;">
+            <i class="fas fa-file-excel" style="font-size: 0.95rem; margin-right: 0.5rem; color: #217346;"></i> Export
+            Benefit Data
+        </a>
     </div>
 </div>
 

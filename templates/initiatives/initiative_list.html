@@ -25,7 +25,7 @@
 
 <div class="card glass initiative-table-view" style="overflow-x: auto;">
     <table>
-        <thead>
+        <thead style="vertical-align: top;">
             <tr>
                 <th>
                     <a href="?sort={% if request.GET.sort == 'name' %}-name{% else %}name{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.technology %}&technology={{ request.GET.technology }}{% endif %}"
@@ -61,6 +61,7 @@
                             title="{{ initiative.status }}"></span>
                         <a href="{% url 'initiative_edit' initiative.pk %}" class="edit-link">
                             <strong style="font-size: 0.85rem;">{{ initiative.name }}</strong>
+                            <i class="fas fa-edit" style="font-size: 0.7rem; color: var(--text-secondary);"></i>
                         </a>
                     </div>
                     <p style="margin: 0 1.5rem;">
@@ -69,22 +70,22 @@
                             {{ initiative.benefit_name }}</span>
                     </p>
                 </td>
-                <td style="font-size: 0.85rem;">
-                    <div style="font-weight: 600; margin-bottom: 4px;">{{ initiative.department }}</div>
+                <td style="font-size: 0.75rem;">
+                    <div style="font-weight: 500; margin-bottom: 4px;">{{ initiative.department }}</div>
                     <div style="display: flex; flex-wrap: wrap; gap: 4px;">
                         <span class="badge"
                             style="font-size: 0.5rem; background: rgba(0, 122, 255, 0.05); color: var(--primary-color); border: 1px solid rgba(0, 122, 255, 0.1); padding: 0.1rem 0.4rem; text-transform: none;">
                             {{ initiative.technology }}</span>
                     </div>
                 </td>
-                <td style="font-size: 0.85rem;font-weight: 500; text-align: right; padding-right: 1.5rem;">
+                <td style="font-size: 0.75rem;font-weight: 500; text-align: right; padding-right: 1.5rem;">
                     {% if initiative.total_productivity > 0 %}
                     ${{ initiative.total_productivity|floatformat:2|intcomma}}
                     {% else %}
                     -
                     {% endif %}
                 </td>
-                <td style="font-size: 0.85rem;font-weight: 500; text-align: right; padding-right: 1.5rem;">
+                <td style="font-size: 0.75rem;font-weight: 500; text-align: right; padding-right: 1.5rem;">
                     {% if initiative.total_revenue > 0 %}
                     ${{ initiative.total_revenue|floatformat:2|intcomma }}
                     {% else %}
@@ -93,8 +94,8 @@
                 </td>
                 <td class="actions-cell" style="justify-content: center; text-align: center;">
                     <a href="{% url 'benefit_entry' initiative.pk %}" class="action-btn"
-                        style="padding: 0.5rem 1rem; gap: 8px;" title="Add Realized Benefit"> +
-                        <i class="fas fa-file-invoice-dollar"></i>
+                        style="font-size: 0.8rem; padding: 0.5rem 1rem; gap: 8px;" title="Add Realized Benefit">
+                        + {{ initiative.kpi_name|default:"KPI"|truncatechars:18 }}
                     </a>
                 </td>
             </tr>
