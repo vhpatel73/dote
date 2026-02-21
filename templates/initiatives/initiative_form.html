@@ -1,30 +1,75 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="max-width: 800px; margin: 0 auto;">
+<div style="max-width: 1200px; margin: 0 auto;">
     <h1>{% if object %}Edit{% else %}New{% endif %} AI <span class="gradient-text">Initiative</span></h1>
 
     <div class="card glass">
         <form method="post" id="initiative-form">
             {% csrf_token %}
-            <div class="form-grid">
-                {% for field in form %}
-                <div
-                    class="form-group {% if field.name == 'description' or field.name == 'value' or field.name == 'name' %}full-width{% endif %} field-{{ field.name }}">
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.help_text %}
-                    <small class="help-text">{{ field.help_text }}</small>
-                    {% endif %}
-                    {% if field.errors %}
-                    <div class="error">{{ field.errors }}</div>
+
+            <div class="main-form-layout">
+
+                <!-- Left Column: Initiative Details -->
+                <div>
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Initiative Details</h3>
+                    <div class="form-grid">
+                        {% for field in form %}
+                        {% if field.name in left_fields %}
+                        <div
+                            class="form-group {% if field.name == 'description' or field.name == 'value' or field.name == 'name' or field.name == 'technology' %}full-width{% endif %} field-{{ field.name }}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <small class="help-text">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="error">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Right Column: Benefit Configuration -->
+                <div>
+                    <h3 style="margin-bottom: 1.5rem; font-size: 1.25rem;">Benefit Configuration</h3>
+                    <div class="form-grid">
+                        {% for field in form %}
+                        {% if field.name in right_fields %}
+                        <div class="form-group full-width field-{{ field.name }}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}
+                            <small class="help-text">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% if field.errors %}
+                            <div class="error">{{ field.errors }}</div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if object %}
+                    <div class="card glass"
+                        style="margin-top: 2rem; padding: 1.5rem; background: rgba(52, 168, 83, 0.05); border: 1px solid rgba(52, 168, 83, 0.2);">
+                        <h4 style="margin-top: 0; margin-bottom: 0.5rem; color: #34A853;"><i
+                                class="fas fa-chart-line"></i> Track Realized Values</h4>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Ready to track
+                            ROI? Add monthly realized benefits for this initiative.</p>
+                        <a href="{% url 'benefit_entry' object.pk %}" class="btn-primary"
+                            style="display: inline-block; text-decoration: none;">Manage Benefits</a>
+                    </div>
                     {% endif %}
                 </div>
-                {% endfor %}
+
             </div>
         </form>
 
-        <div style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center;">
+        <div class="form-actions"
+            style="margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
             <div>
                 {% if object %}
                 <form action="{% url 'initiative_delete' object.pk %}" method="post" style="margin: 0;"
@@ -37,7 +82,7 @@
                 </form>
                 {% endif %}
             </div>
-            <div style="display: flex; align-items: center; gap: 1.5rem;">
+            <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
                 <a href="{% url 'initiative_list' %}" class="btn-text">Cancel</a>
                 <button type="submit" form="initiative-form" class="btn-primary">Save Initiative</button>
             </div>
@@ -46,6 +91,12 @@
 </div>
 
 <style>
+    .main-form-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+    }
+
     .form-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -53,7 +104,7 @@
     }
 
     .full-width {
-        grid-column: span 2;
+        grid-column: 1 / -1;
     }
 
     .form-group {
@@ -71,6 +122,8 @@
     .form-group input,
     .form-group select,
     .form-group textarea {
+        box-sizing: border-box;
+        width: 100%;
         padding: 0.75rem;
         border-radius: 8px;
         border: 1px solid var(--border-color);
@@ -91,6 +144,10 @@
         resize: vertical;
     }
 
+    textarea#id_value {
+        min-height: 60px;
+    }
+
     .error {
         color: #ef4444;
         font-size: 0.75rem;
@@ -99,6 +156,30 @@
     /* Hidden fields */
     .hidden {
         display: none !important;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 900px) {
+        .main-form-layout {
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-actions {
+            flex-direction: column-reverse;
+            justify-content: center;
+        }
+
+        .form-actions>div {
+            width: 100%;
+            justify-content: center;
+        }
     }
 </style>
 {% endblock %}

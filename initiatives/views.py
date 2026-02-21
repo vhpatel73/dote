@@ -156,7 +156,7 @@ class BenefitAnalysisView(View):
                 'prod_data': prod_data,
                 'rev_data': rev_data,
             },
-            'table_by_month': monthly_stats,
+            'table_by_month': monthly_stats.order_by('-month_trunc'),
             'table_by_initiative': list(initiative_stats),
             'active_tab': request.GET.get('tab', 'month'),
         }
@@ -241,6 +241,12 @@ class InitiativeCreateView(CreateView):
         log_audit(self.request, 'Create', 'Initiative', self.object.name)
         return response
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['left_fields'] = ['name', 'requester_name', 'lob_owner', 'description', 'it_owner', 'it_owner_email', 'department', 'status', 'technology']
+        context['right_fields'] = ['value', 'benefit_name', 'webhook_key', 'kpi_name', 'multiplier_minutes', 'multiplier_dollars']
+        return context
+
 class InitiativeUpdateView(UpdateView):
     model = Initiative
     fields = '__all__'
@@ -251,6 +257,12 @@ class InitiativeUpdateView(UpdateView):
         response = super().form_valid(form)
         log_audit(self.request, 'Update', 'Initiative', self.object.name)
         return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['left_fields'] = ['name', 'requester_name', 'lob_owner', 'description', 'it_owner', 'it_owner_email', 'department', 'status', 'technology']
+        context['right_fields'] = ['value', 'benefit_name', 'webhook_key', 'kpi_name', 'multiplier_minutes', 'multiplier_dollars']
+        return context
 
 class InitiativeDeleteView(View):
     def post(self, request, pk):
