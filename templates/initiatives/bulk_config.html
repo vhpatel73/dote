@@ -245,8 +245,8 @@
             &amp; Data Management
         </h1>
         <p class="hero-subtitle">
-            Manage your AI initiatives at scale. Use standardized CSV templates to import new initiatives,
-            update existing records, or export your entire inventory for offline analysis.
+            Manage your AI initiatives at scale. Use standardized JSON packages to reliably backup your entire inventory
+            and restore your database.
         </p>
     </div>
 </section>
@@ -260,21 +260,23 @@
             <div class="config-icon" style="background: rgba(0, 122, 255, 0.1); color: #007AFF;">
                 <i class="fas fa-file-export"></i>
             </div>
-            <h3>Export &amp; Templates</h3>
-            <p>Download your current inventory or get a blank template with the correct headers for bulk uploading. The
-                system expects a strict comma-separated format.</p>
+            <h3>Export System Backup</h3>
+            <p>Download your current inventory, including every initiative and its correlated realized benefits as a
+                clean system backup package.</p>
 
             <ul class="spec-list">
-                <li><i class="fas fa-check-circle"></i> Requires valid headers (name, department, status, etc)</li>
-                <li><i class="fas fa-check-circle"></i> Export includes system IDs for updating records</li>
-                <li><i class="fas fa-check-circle"></i> UTF-8 encoding standard </li>
+                <li><i class="fas fa-check-circle"></i> Complete database relational bindings.</li>
+                <li><i class="fas fa-check-circle"></i> Single file JSON standard format.</li>
+                <li><i class="fas fa-check-circle"></i> Timestamped to prevent overriding.</li>
             </ul>
 
             <div style="display: flex; gap: 1rem; margin-top: auto;">
-                <a href="{% url 'csv_sample' %}" class="btn-secondary" style="flex: 1; justify-content: center;">
+                <a href="{% url 'csv_sample' %}" class="btn-secondary"
+                    style="flex: 1; justify-content: center; height: 3rem; font-size: 0.95rem; display: flex; align-items: center; text-decoration: none; box-sizing: border-box;">
                     <i class="fas fa-file-download"></i> Sample
                 </a>
-                <a href="{% url 'csv_download' %}" class="btn-primary" style="flex: 1; justify-content: center;">
+                <a href="{% url 'csv_download' %}" class="btn-primary"
+                    style="flex: 1; justify-content: center; height: 3rem; font-size: 0.95rem; display: flex; align-items: center; text-decoration: none; box-sizing: border-box;">
                     <i class="fas fa-download"></i> Export Data
                 </a>
             </div>
@@ -285,9 +287,9 @@
             <div class="config-icon" style="background: rgba(142, 36, 170, 0.1); color: #8E24AA;">
                 <i class="fas fa-file-import"></i>
             </div>
-            <h3>Import CSV</h3>
-            <p>Upload a validated CSV file to bulk create or update initiatives. If an ID matches, the system updates
-                the record; otherwise, a new one is created.</p>
+            <h3>Restore Backup</h3>
+            <p>Upload a validated JSON full-backup package to immediately restore your system. <strong>Warning: This
+                    action explicitly drops the current table state to accurately mirror the backup!</strong></p>
 
             <form action="{% url 'csv_upload' %}" method="post" enctype="multipart/form-data"
                 style="margin-top: auto; display: flex; flex-direction: column;">
@@ -297,11 +299,12 @@
                     <div style="font-size: 0.9rem; font-weight: 500; color: var(--text-primary);">Drag & Drop or Click
                         to Browse</div>
                     <span id="file-name" class="file-name-display">No file selected</span>
-                    <input type="file" name="csv_file" required onchange="updateFileName(this)">
+                    <input type="file" name="csv_file" accept=".json" required onchange="updateFileName(this)">
                 </div>
 
-                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
-                    <i class="fas fa-upload"></i> Process Import
+                <button type="submit" class="btn-primary"
+                    style="width: 100%; justify-content: center; height: 3rem; font-size: 0.95rem; display: flex; align-items: center; border: none; cursor: pointer; box-sizing: border-box;">
+                    <i class="fas fa-upload"></i> Process Restore
                 </button>
             </form>
         </div>

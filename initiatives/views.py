@@ -6,6 +6,9 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib import messages
 from django.db.models import Sum, Count, F, ExpressionWrapper, FloatField, Q
 from django.db.models.functions import TruncMonth, Coalesce
+from django.utils import timezone
+from django.core import serializers
+from itertools import chain
 import json
 from .models import Initiative, RealizedBenefit, WebhookAuditLog, AuditLog
 from django.views.decorators.csrf import csrf_exempt
@@ -167,8 +170,6 @@ class BenefitAnalysisView(View):
 
 
 
-from django.db.models.functions import Coalesce
-
 class InitiativeListView(ListView):
     model = Initiative
     context_object_name = 'initiatives'
@@ -321,25 +322,17 @@ class RealizedBenefitDeleteView(View):
 
 class CSVDownloadView(View):
     def get(self, request):
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="initiatives_export.csv"'
+        timestamp = timezone.now().strftime("%Y%m%d_%H%M%S")
+        response = HttpResponse(content_type='application/json')
+        response['Content-Disposition'] = f'attachment; filename="dote_full_backup_{timestamp}.json"'
         
-        writer = csv.writer(response)
-        writer.writerow([
-            'Initiative Name', 'Requester Name', 'LOB Owner', 'Description', 'IT Owner', 
-            'IT Owner Email', 'Department', 'Status', 'Technology', 'Value', 
-            'Benefit Name', 'KPI Name', 'Multiplier Minutes', 'Multiplier Dollars'
-        ])
+        initiatives = Initiative.objects.all()
+        benefits = RealizedBenefit.objects.all()
         
-        for initiative in Initiative.objects.all():
-            writer.writerow([
-                initiative.name, initiative.requester_name, initiative.lob_owner, initiative.description, 
-                initiative.it_owner, initiative.it_owner_email, initiative.department, initiative.status, 
-                initiative.technology, initiative.value, initiative.benefit_name,
-                initiative.kpi_name, initiative.multiplier_minutes, initiative.multiplier_dollars
-            ])
+        data = serializers.serialize('json', list(chain(initiatives, benefits)))
+        response.write(data)
             
-        log_audit(request, 'Export', 'Initiative', 'Full System Export', details={'count': Initiative.objects.count()})
+        log_audit(request, 'Export', 'System', 'Full System Backup Export', details={'items': len(initiatives) + len(benefits)})
         return response
 
 class BenefitCSVDownloadView(View):
@@ -372,61 +365,36 @@ class BenefitCSVDownloadView(View):
 
 class CSVUploadView(View):
     def post(self, request):
-        csv_file = request.FILES.get('csv_file')
-        if not csv_file:
+        backup_file = request.FILES.get('csv_file')
+        if not backup_file:
             messages.error(request, "No file uploaded.")
-            return redirect('initiative_list')
-        
-        decoded_file = csv_file.read().decode('utf-8')
-        io_string = io.StringIO(decoded_file)
-        next(io_string) # Skip header
-        
-        count = 0
-        for column in csv.reader(io_string, delimiter=',', quotechar='"'):
-            if len(column) < 14:
-                continue
-
-            Initiative.objects.update_or_create(
-                name=column[0],
-                defaults={
-                    'requester_name': column[1],
-                    'lob_owner': column[2],
-                    'description': column[3],
-                    'it_owner': column[4],
-                    'it_owner_email': column[5],
-                    'department': column[6],
-                    'status': column[7],
-                    'technology': column[8],
-                    'value': column[9],
-                    'benefit_name': column[10],
-                    'kpi_name': column[11],
-                    'multiplier_minutes': float(column[12] or 0),
-                }
-            )
-            count += 1
+            return redirect('bulk_config')
             
-        log_audit(request, 'Import', 'Initiative', 'Bulk CSV Data Upload', details={'imported_rows': count})
-        messages.success(request, f"CSV imported successfully ({count} initiatives).")
-        return redirect('initiative_list')
+        try:
+            # Clear all data prior to restore as requested
+            Initiative.objects.all().delete()
+            RealizedBenefit.objects.all().delete()
+            
+            data = backup_file.read().decode('utf-8')
+            objects = serializers.deserialize('json', data)
+            count = 0
+            for obj in objects:
+                obj.save()
+                count += 1
+                
+            messages.success(request, f"System successfully restored from backup ({count} records).")
+            log_audit(request, 'Import', 'System', 'Full System Backup Restored', details={'imported_rows': count})
+        except Exception as e:
+            messages.error(request, f"Restore failed: {str(e)}")
+            
+        return redirect('bulk_config')
 
 class SampleCSVDownloadView(View):
     def get(self, request):
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="sample_initiatives.csv"'
-        
-        writer = csv.writer(response)
-        writer.writerow([
-            'Initiative Name', 'Requester Name', 'LOB Owner', 'Description', 'IT Owner', 
-            'IT Owner Email', 'Department', 'Status', 'Technology', 'Value', 
-            'Benefit Name', 'KPI Name', 'Multiplier Minutes', 'Multiplier Dollars'
-        ])
-        writer.writerow([
-            'Customer Support Chatbot', 'John Doe', 'Claims', 'AI Chatbot for customer support', 'IT Team',
-            'it-claims@example.com', 'Claims', 'In-progress', 'OpenAI GPT-4', 'Reduce response time by 50%',
-            'Productivity Gain', 'Calls Handled', '5.0', '25.0'
-        ])
-        
-        log_audit(request, 'Export', 'Initiative', 'Sample Template Format')
+        response = HttpResponse(content_type='application/json')
+        response['Content-Disposition'] = 'attachment; filename="sample_backup.json"'
+        response.write('[]') # empty json array as sample
+        log_audit(request, 'Export', 'System', 'Sample Backup Template')
         return response
 @method_decorator(csrf_exempt, name='dispatch')
 class RealtimeReportingWebhookView(View):
