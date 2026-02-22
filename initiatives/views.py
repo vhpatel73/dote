@@ -39,38 +39,7 @@ class DashboardView(View):
     def get(self, request):
         initiatives = Initiative.objects.all()
         
-        # Helper for common annotations
-        prod_gain_expr = Coalesce(Sum(
-            F('realized_benefits__kpi_value') * 
-            F('multiplier_minutes') * 
-            F('multiplier_dollars'),
-            output_field=FloatField()
-        ), 0.0)
-        
-        rev_impact_expr = Coalesce(Sum('realized_benefits__revenue_impact'), 0.0)
-
-        # 1. Functional View (Department)
-        dept_stats = list(initiatives.values('department').annotate(
-            count=Count('id', distinct=True),
-            prod_gain=prod_gain_expr,
-            rev_impact=rev_impact_expr
-        ).order_by('department'))
-
-        # 2. Status View
-        status_stats = list(initiatives.values('status').annotate(
-            count=Count('id', distinct=True),
-            prod_gain=prod_gain_expr,
-            rev_impact=rev_impact_expr
-        ).order_by('status'))
-
-        # 3. Technology View
-        tech_stats = list(initiatives.values('technology').annotate(
-            count=Count('id', distinct=True),
-            prod_gain=prod_gain_expr,
-            rev_impact=rev_impact_expr
-        ).order_by('technology'))
-        
-        # High-level Totals
+        # High-level Totals for Dashboard Stat Cards
         total_productivity = RealizedBenefit.objects.filter(
             initiative__benefit_name='Productivity Gain'
         ).aggregate(
@@ -81,47 +50,7 @@ class DashboardView(View):
             initiative__benefit_name='New Business'
         ).aggregate(Sum('revenue_impact'))['revenue_impact__sum'] or 0
 
-        # Shared Color Palette for UI Consistency
-        COLORS = [
-            '#4285F4', # Google Blue
-            '#34A853', # Google Green
-            '#FBBC05', # Google Yellow
-            '#EA4335', # Google Red
-            '#8F00FF', # Purple
-            '#00C7BE', # Teal
-            '#FF9500', # Orange
-            '#5856D6', # Indigo
-            '#AF52DE', # Pink
-            '#5AC8FA'  # Sky
-        ]
-        
-        # Attach colors to stats for template use
-        for i, item in enumerate(dept_stats):
-            item['color'] = COLORS[i % len(COLORS)]
-        for i, item in enumerate(status_stats):
-            item['color'] = COLORS[i % len(COLORS)]
-        for i, item in enumerate(tech_stats):
-            item['color'] = COLORS[i % len(COLORS)]
-        
-        context = {
-            'total_initiatives': initiatives.count(),
-            'total_productivity': total_productivity,
-            'total_revenue': total_revenue,
-            'total_overall': float(total_productivity) + float(total_revenue),
-            'live_systems': initiatives.filter(status='Live').count(),
-            'dept_stats': dept_stats,
-            'status_stats': status_stats,
-            'tech_stats': tech_stats,
-            'dept_data': {'labels': [i['department'] for i in dept_stats], 'counts': [i['count'] for i in dept_stats]},
-            'status_data': {'labels': [i['status'] for i in status_stats], 'counts': [i['count'] for i in status_stats]},
-            'tech_data': {'labels': [i['technology'] for i in tech_stats], 'counts': [i['count'] for i in tech_stats]},
-            'COLORS': COLORS,
-        }
-        return render(request, 'initiatives/dashboard.html', context)
-
-class BenefitAnalysisView(View):
-    def get(self, request):
-        # 1. Monthly Data for Stacked Bar Chart
+        # Bar Chart & Detailed Breakdown logic (Moved to Dashboard)
         monthly_stats = RealizedBenefit.objects.annotate(
             month_trunc=TruncMonth('month')
         ).values('month_trunc').annotate(
@@ -133,7 +62,6 @@ class BenefitAnalysisView(View):
         prod_data = [float(stat['prod_gain']) for stat in monthly_stats]
         rev_data = [float(stat['rev_impact']) for stat in monthly_stats]
 
-        # 2. Tabular Data - Group by Initiative
         initiative_stats = RealizedBenefit.objects.values(
             'initiative__id',
             'initiative__name', 
@@ -147,7 +75,6 @@ class BenefitAnalysisView(View):
             total_impact=F('prod_gain') + F('rev_impact')
         )
 
-        # Dynamic sorting based on parameter
         sort_by = request.GET.get('sort', 'total')
         if sort_by == 'prod':
             initiative_stats = initiative_stats.order_by('-prod_gain')
@@ -156,7 +83,21 @@ class BenefitAnalysisView(View):
         else:
             initiative_stats = initiative_stats.order_by('-total_impact')
 
+        function_stats = RealizedBenefit.objects.values(
+            'initiative__department'
+        ).annotate(
+            prod_gain=Coalesce(Sum(F('kpi_value') * F('initiative__multiplier_minutes') * F('initiative__multiplier_dollars')), 0.0),
+            rev_impact=Coalesce(Sum('revenue_impact'), 0.0)
+        ).annotate(
+            total_impact=F('prod_gain') + F('rev_impact')
+        ).order_by('-total_impact')
+
         context = {
+            'total_initiatives': initiatives.count(),
+            'total_productivity': total_productivity,
+            'total_revenue': total_revenue,
+            'total_overall': float(total_productivity) + float(total_revenue),
+            'live_systems': initiatives.filter(status='Live').count(),
             'chart_data': {
                 'labels': labels,
                 'prod_data': prod_data,
@@ -164,7 +105,91 @@ class BenefitAnalysisView(View):
             },
             'table_by_month': monthly_stats.order_by('-month_trunc'),
             'table_by_initiative': list(initiative_stats),
-            'active_tab': request.GET.get('tab', 'month'),
+            'table_by_function': list(function_stats),
+            'active_tab': request.GET.get('tab', 'initiative'),
+        }
+        return render(request, 'initiatives/dashboard.html', context)
+
+class BenefitAnalysisView(View):
+    def get(self, request):
+        initiatives = Initiative.objects.all()
+        
+        prod_gain_expr = Coalesce(Sum(
+            F('realized_benefits__kpi_value') * 
+            F('multiplier_minutes') * 
+            F('multiplier_dollars'),
+            output_field=FloatField()
+        ), 0.0)
+        
+        rev_impact_expr = Coalesce(Sum('realized_benefits__revenue_impact'), 0.0)
+
+        dept_stats = list(initiatives.values('department').annotate(
+            count=Count('id', distinct=True),
+            prod_gain=prod_gain_expr,
+            rev_impact=rev_impact_expr
+        ).order_by('department'))
+
+        status_stats = list(initiatives.values('status').annotate(
+            count=Count('id', distinct=True),
+            prod_gain=prod_gain_expr,
+            rev_impact=rev_impact_expr
+        ).order_by('status'))
+
+        tech_stats = list(initiatives.values('technology').annotate(
+            count=Count('id', distinct=True),
+            prod_gain=prod_gain_expr,
+            rev_impact=rev_impact_expr
+        ).order_by('technology'))
+        
+        COLORS = [
+            '#4285F4', '#34A853', '#FBBC05', '#EA4335', '#8F00FF', 
+            '#00C7BE', '#FF9500', '#5856D6', '#AF52DE', '#5AC8FA'
+        ]
+        
+        for i, item in enumerate(dept_stats):
+            item['color'] = COLORS[i % len(COLORS)]
+        for i, item in enumerate(status_stats):
+            item['color'] = COLORS[i % len(COLORS)]
+        for i, item in enumerate(tech_stats):
+            item['color'] = COLORS[i % len(COLORS)]
+
+        initiatives_with_impact = initiatives.annotate(
+            prod_gain=prod_gain_expr,
+            rev_impact=rev_impact_expr
+        ).annotate(
+            total_impact=F('prod_gain') + F('rev_impact')
+        ).order_by('status', 'department', '-total_impact')
+
+        dept_summary = list(initiatives.values('department').annotate(
+            total=Count('id', distinct=True),
+            live=Count('id', filter=Q(status__iexact='Live'), distinct=True),
+            in_progress=Count('id', filter=Q(status__iexact='In-progress'), distinct=True),
+            planning=Count('id', filter=~Q(status__iexact='Live') & ~Q(status__iexact='In-progress'), distinct=True)
+        ).order_by('department'))
+
+        for i, item in enumerate(dept_summary):
+            item['color'] = COLORS[i % len(COLORS)]
+
+        overall_live = sum(item['live'] for item in dept_summary)
+        overall_in_progress = sum(item['in_progress'] for item in dept_summary)
+        overall_planning = sum(item['planning'] for item in dept_summary)
+        overall_total = overall_live + overall_in_progress + overall_planning
+        overall_total_safe = overall_total if overall_total > 0 else 1
+
+        context = {
+            'dept_stats': dept_stats,
+            'status_stats': status_stats,
+            'tech_stats': tech_stats,
+            'dept_data': {'labels': [i['department'] for i in dept_stats], 'counts': [i['count'] for i in dept_stats]},
+            'status_data': {'labels': [i['status'] for i in status_stats], 'counts': [i['count'] for i in status_stats]},
+            'tech_data': {'labels': [i['technology'] for i in tech_stats], 'counts': [i['count'] for i in tech_stats]},
+            'COLORS': COLORS,
+            'initiatives': initiatives_with_impact,
+            'dept_summary': dept_summary,
+            'overall_live': overall_live,
+            'overall_in_progress': overall_in_progress,
+            'overall_planning': overall_planning,
+            'overall_total': overall_total_safe,
         }
         return render(request, 'initiatives/benefit_analysis.html', context)
 

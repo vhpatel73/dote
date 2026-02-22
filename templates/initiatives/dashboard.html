@@ -265,267 +265,433 @@
     }
 </style>
 
-<div class="card glass tab-container">
-    <div class="tab-nav">
-        <button class="tab-btn active" onclick="switchTab('func')">Functional View</button>
-        <button class="tab-btn" onclick="switchTab('status')">Status View</button>
-        <button class="tab-btn" onclick="switchTab('tech')">Technology View</button>
-    </div>
-
-    <!-- Functional Pane -->
-    <div id="pane-func" class="tab-pane active">
-        {% if dept_stats %}
-        <div class="dashboard-table-container">
-            <table class="analytic-table">
-                <thead>
-                    <tr>
-                        <th>Function</th>
-                        <th style="text-align: center;">Count</th>
-                        <th style="text-align: right;">Prod. Gain ($)</th>
-                        <th style="text-align: right;">Rev. Impact ($)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in dept_stats %}
-                    <tr>
-                        <td style="font-weight: 700;">
-                            <div style="display: flex; align-items: center;">
-                                <span class="color-dot" style="background-color: {{ item.color }};"></span>
-                                <a href="{% url 'initiative_list' %}?q={{ item.department|urlencode }}"
-                                    class="drill-down-link">
-                                    {{ item.department }}
-                                </a>
-                            </div>
-                        </td>
-                        <td style="text-align: center;"><span class="badge"
-                                style="background: rgba(0, 122, 255, 0.1); color: black;">{{item.count}}</span>
-                        </td>
-                        <td style="text-align: right; font-weight: 500;">
-                            ${{item.prod_gain|floatformat:0|intcomma}}</td>
-                        <td style="text-align: right; font-weight: 500;">
-                            ${{item.rev_impact|floatformat:0|intcomma}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="dashboard-chart-container">
-            <div style="height: 300px; width: 100%;">
-                <canvas id="deptChart"></canvas>
-            </div>
-        </div>
-        {% else %}
-        <div
-            style="width: 100%; text-align: center; padding: 4rem 2rem; border-radius: 16px; background: var(--bg-secondary); color: var(--text-secondary); border: 1px dashed rgba(52, 168, 83, 0.2);">
-            <svg width="150" height="80" viewBox="0 0 150 80"
-                style="margin-bottom: 1rem; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
-                <!-- Light green line artwork -->
-                <path d="M10 60 Q 40 10, 75 40 T 140 20" opacity="0.6" stroke-dasharray="4 4" />
-                <path d="M10 70 Q 50 20, 85 50 T 140 30" stroke-width="3" />
-                <circle cx="140" cy="30" r="5" fill="currentColor" />
-            </svg>
-            <h3 style="margin-bottom: 0.5rem; font-weight: 600;">Nothing to display</h3>
-            <p style="opacity: 0.8; font-size: 0.9rem;">Add an initiative and start tracking data to populate this
-                functional view.</p>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Status Pane -->
-    <div id="pane-status" class="tab-pane">
-        {% if status_stats %}
-        <div class="dashboard-table-container">
-            <table class="analytic-table">
-                <thead>
-                    <tr>
-                        <th>Status</th>
-                        <th style="text-align: center;">Count</th>
-                        <th style="text-align: right;">Prod. Gain ($)</th>
-                        <th style="text-align: right;">Rev. Impact ($)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in status_stats %}
-                    <tr>
-                        <td style="font-weight: 700;">
-                            <div style="display: flex; align-items: center;">
-                                <span class="color-dot" style="background-color: {{ item.color }};"></span>
-                                <a href="{% url 'initiative_list' %}?q={{ item.status|urlencode }}"
-                                    class="drill-down-link">
-                                    {{ item.status }}
-                                </a>
-                            </div>
-                        </td>
-                        <td style="text-align: center;"><span class="badge"
-                                style="background: rgba(0, 122, 255, 0.1); color: black;">{{item.count}}</span>
-                        </td>
-                        <td style="text-align: right; font-weight: 500;">
-                            ${{item.prod_gain|floatformat:0|intcomma}}</td>
-                        <td style="text-align: right; font-weight: 500;">
-                            ${{item.rev_impact|floatformat:0|intcomma}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="dashboard-chart-container">
-            <div style="height: 300px; width: 100%;">
-                <canvas id="statusChart"></canvas>
-            </div>
-        </div>
-        {% else %}
-        <div
-            style="width: 100%; text-align: center; padding: 4rem 2rem; border-radius: 16px; background: var(--bg-secondary); color: var(--text-secondary); border: 1px dashed rgba(52, 168, 83, 0.2);">
-            <svg width="150" height="80" viewBox="0 0 150 80"
-                style="margin-bottom: 1rem; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
-                <!-- Light green line artwork -->
-                <path d="M10 60 Q 40 10, 75 40 T 140 20" opacity="0.6" stroke-dasharray="4 4" />
-                <path d="M10 70 Q 50 20, 85 50 T 140 30" stroke-width="3" />
-                <circle cx="140" cy="30" r="5" fill="currentColor" />
-            </svg>
-            <h3 style="margin-bottom: 0.5rem; font-weight: 600;">Nothing to display</h3>
-            <p style="opacity: 0.8; font-size: 0.9rem;">Add an initiative and start tracking data to populate this
-                status view.</p>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Tech Pane -->
-    <div id="pane-tech" class="tab-pane">
-        {% if tech_stats %}
-        <div class="dashboard-table-container">
-            <table class="analytic-table">
-                <thead>
-                    <tr>
-                        <th>Technology</th>
-                        <th style="text-align: center;">Count</th>
-                        <th style="text-align: right;">Prod. Gain ($)</th>
-                        <th style="text-align: right;">Rev. Impact ($)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for item in tech_stats %}
-                    <tr>
-                        <td style="font-weight: 700;">
-                            <div style="display: flex; align-items: center;">
-                                <span class="color-dot" style="background-color: {{ item.color }};"></span>
-                                <a href="{% url 'initiative_list' %}?q={{ item.technology|urlencode }}"
-                                    class="drill-down-link">
-                                    {{ item.technology }}
-                                </a>
-                            </div>
-                        </td>
-                        <td style="text-align: center;"><span class="badge"
-                                style="background: rgba(0, 122, 255, 0.1); color: black;">{{item.count}}</span>
-                        </td>
-                        <td style="text-align: right; font-weight: 500;">
-                            ${{item.prod_gain|floatformat:0|intcomma}}</td>
-                        <td style="text-align: right; font-weight: 500;">
-                            ${{item.rev_impact|floatformat:0|intcomma}}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="dashboard-chart-container">
-            <div style="height: 300px; width: 100%;">
-                <canvas id="techChart"></canvas>
-            </div>
-        </div>
-        {% else %}
-        <div
-            style="width: 100%; text-align: center; padding: 4rem 2rem; border-radius: 16px;    background: var(--bg-secondary); color: var(--text-secondary); border: 1px dashed rgba(52, 168, 83, 0.2);">
-            <svg width="150" height="80" viewBox="0 0 150 80"
-                style="margin-bottom: 1rem; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;">
-                <!-- Light green line artwork -->
-                <path d="M10 60 Q 40 10, 75 40 T 140 20" opacity="0.6" stroke-dasharray="4 4" />
-                <path d="M10 70 Q 50 20, 85 50 T 140 30" stroke-width="3" />
-                <circle cx="140" cy="30" r="5" fill="currentColor" />
-            </svg>
-            <h3 style="margin-bottom: 0.5rem; font-weight: 600;">Nothing to display</h3>
-            <p style="opacity: 0.8; font-size: 0.9rem;">Add an initiative and start tracking data to populate this
-                technology view.</p>
-        </div>
-        {% endif %}
+<div class="card glass" style="margin-bottom: 3rem; padding: 2rem;">
+    <h3 style="text-align: left; margin-bottom: .05rem;">Value Impact</h3>
+    <p style="text-align: left; margin-bottom: 2rem; font-size: .75rem;">Last 12 Months</p>
+    <div style="height: 400px; position: relative; display: flex; justify-content: center; align-items: center;">
+        <canvas id="trendChart"></canvas>
     </div>
 </div>
 
+<div class="card glass" style="padding: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h3>Detailed Breakdown</h3>
+        <div class="toggle-switch">
+            <button id="btnInitiative" class="btn-toggle active" onclick="switchTable('initiative')">By
+                Initiative</button>
+            <button id="btnFunction" class="btn-toggle" onclick="switchTable('function')">By Function</button>
+            <button id="btnMonth" class="btn-toggle" onclick="switchTable('month')">By Month</button>
+        </div>
+    </div>
+
+    <div id="tableMonth">
+        <div class="trend-table-view">
+            <table class="trend-table">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th style="text-align: right;">Productivity Gain ($)</th>
+                        <th style="text-align: right;">Revenue Impact ($)</th>
+                        <th style="text-align: right;">Total Impact ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in table_by_month %}
+                    <tr>
+                        <td style="font-size: 0.75rem; font-weight: 600;">{{ stat.month_trunc|date:"F Y" }}</td>
+                        <td style="text-align: right; color: var(--primary-color); font-size: 0.75rem;">
+                            ${{ stat.prod_gain|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; color: #34A853; font-size: 0.75rem;">
+                            ${{ stat.rev_impact|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; font-weight: 700; color: #8F00FF; font-size: 0.75rem;">
+                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="trend-card-view">
+            {% for stat in table_by_month %}
+            <div class="mobile-trend-card">
+                <div class="trend-card-header">
+                    <strong>{{ stat.month_trunc|date:"F Y" }}</strong>
+                </div>
+                <div class="trend-card-body">
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Productivity</span>
+                        <span class="trend-stat-value" style="color: var(--primary-color);">
+                            ${{ stat.prod_gain|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Revenue</span>
+                        <span class="trend-stat-value" style="color: #166534;">
+                            ${{ stat.rev_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row total">
+                        <span class="trend-stat-label">Total Impact</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">
+                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="tableInitiative" style="display: none;">
+        <div class="trend-table-view">
+            <table class="trend-table">
+                <thead>
+                    <tr>
+                        <th>Initiative Name</th>
+                        <th>KPI</th>
+                        <th style="text-align: right;">Productivity Gain ($)</th>
+                        <th style="text-align: right;">Revenue Impact ($)</th>
+                        <th style="text-align: right;">Total Impact ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in table_by_initiative %}
+                    <tr>
+                        <td style="font-size: 0.75rem; font-weight: 600;">
+                            <a href="{% url 'benefit_entry' stat.initiative__id %}"
+                                style="text-decoration: none; color: inherit;" class="edit-link">
+                                {{ stat.initiative__name }}
+                            </a>
+                        </td>
+                        <td style="font-size: 0.75rem;">
+                            <span style="font-weight: 600;">{{ stat.total_kpi|floatformat:0|intcomma }}</span>
+                            <span style="font-size: 0.65rem; color: var(--text-secondary); margin-left: 4px;">
+                                {{ stat.initiative__kpi_name|default:"KPI" }}</span>
+                        </td>
+                        <td style="text-align: right; color: var(--primary-color); font-size: 0.75rem;">
+                            ${{ stat.prod_gain|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; color: #34A853; font-size: 0.75rem;">
+                            ${{ stat.rev_impact|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; font-weight: 700; color: #8F00FF; font-size: 0.75rem;">
+                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="trend-card-view">
+            {% for stat in table_by_initiative %}
+            <div class="mobile-trend-card">
+                <div class="trend-card-header">
+                    <strong>
+                        <a href="{% url 'benefit_entry' stat.initiative__id %}"
+                            style="text-decoration: none; color: inherit;" class="edit-link">
+                            {{ stat.initiative__name }}
+                        </a>
+                    </strong>
+                    <div>
+                        <span style="font-weight: 600; font-size: 0.8rem;">{{ stat.total_kpi|floatformat:0|intcomma
+                            }}</span>
+                        <span style="font-size: 0.6rem; color: var(--text-secondary); margin-left: 2px;">{{
+                            stat.initiative__kpi_name|default:"KPI" }}</span>
+                    </div>
+                </div>
+                <div class="trend-card-body">
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Productivity</span>
+                        <span class="trend-stat-value" style="color: var(--primary-color);">${{
+                            stat.prod_gain|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Revenue</span>
+                        <span class="trend-stat-value" style="color: #166534;">${{
+                            stat.rev_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row total">
+                        <span class="trend-stat-label">Total Impact</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">${{
+                            stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="tableFunction" style="display: none;">
+        <div class="trend-table-view">
+            <table class="trend-table">
+                <thead>
+                    <tr>
+                        <th>Function</th>
+                        <th style="text-align: right;">Productivity Gain ($)</th>
+                        <th style="text-align: right;">Revenue Impact ($)</th>
+                        <th style="text-align: right;">Total Impact ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in table_by_function %}
+                    <tr>
+                        <td style="font-size: 0.75rem; font-weight: 600;">{{ stat.initiative__department }}</td>
+                        <td style="text-align: right; color: var(--primary-color); font-size: 0.75rem;">
+                            ${{ stat.prod_gain|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; color: #34A853; font-size: 0.75rem;">
+                            ${{ stat.rev_impact|floatformat:2|intcomma }}
+                        </td>
+                        <td style="text-align: right; font-weight: 700; color: #8F00FF; font-size: 0.75rem;">
+                            ${{ stat.total_impact|floatformat:2|intcomma }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="trend-card-view">
+            {% for stat in table_by_function %}
+            <div class="mobile-trend-card">
+                <div class="trend-card-header">
+                    <strong>{{ stat.initiative__department }}</strong>
+                </div>
+                <div class="trend-card-body">
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Productivity</span>
+                        <span class="trend-stat-value" style="color: var(--primary-color);">${{
+                            stat.prod_gain|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Revenue</span>
+                        <span class="trend-stat-value" style="color: #166534;">${{
+                            stat.rev_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                    <div class="trend-stat-row total">
+                        <span class="trend-stat-label">Total Impact</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">${{
+                            stat.total_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Export Section -->
+    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+        <a href="{% url 'benefit_csv_download' %}" class="btn-secondary"
+            style="font-size: 0.85rem; padding: 0.5rem 1rem; font-weight: 400;">
+            <i class="fas fa-file-excel" style="font-size: 0.95rem; margin-right: 0.5rem; color: #217346;"></i> Export
+            Benefit Data
+        </a>
+    </div>
+</div>
+
+<style>
+    .trend-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .trend-table th {
+        text-align: left;
+        padding: 1rem;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        border-bottom: 2px solid var(--border-color);
+    }
+
+    .trend-table td {
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 0.9rem;
+    }
+
+    .toggle-switch {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 4px;
+        display: flex;
+        gap: 4px;
+    }
+
+    .btn-toggle {
+        border: none;
+        background: transparent;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-secondary);
+    }
+
+    .btn-toggle.active {
+        background: white;
+        color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .badge {
+        background: rgba(0, 122, 255, 0.1);
+        color: var(--primary-color);
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 700;
+    }
+
+    .trend-card-view {
+        display: none;
+        flex-direction: column;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .mobile-trend-card {
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    .trend-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .trend-stat-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.25rem 0;
+    }
+
+    .trend-stat-row.total {
+        margin-top: 0.25rem;
+        padding-top: 0.5rem;
+        border-top: 1px dashed var(--border-color);
+        font-weight: 700;
+    }
+
+    .trend-stat-label {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+    }
+
+    .trend-stat-value {
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    @media screen and (max-width: 768px) {
+        .trend-table-view {
+            display: none;
+        }
+
+        .trend-card-view {
+            display: flex;
+        }
+
+        .card.glass {
+            padding: 1.25rem !important;
+        }
+    }
+</style>
 
 {% endblock %}
 
 {% block extra_js %}
-{{ dept_data|json_script:"dept-data" }}
-{{ status_data|json_script:"status-data" }}
-{{ tech_data|json_script:"tech-data" }}
-
+{{ chart_data|json_script:"chart-data" }}
 <script>
-    // Global chart storage to fix rendering issues in hidden tabs
-    const charts = {};
-
-    function switchTab(type) {
-        // Toggle buttons
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.textContent.toLowerCase().includes(type)) btn.classList.add('active');
-        });
-
-        // Toggle panes
-        document.querySelectorAll('.tab-pane').forEach(pane => {
-            pane.classList.remove('active');
-        });
-        document.getElementById('pane-' + type).classList.add('active');
-
-        // Force Chart.js to resize now that the container is visible
-        const chartId = type === 'func' ? 'deptChart' : (type === 'status' ? 'statusChart' : 'techChart');
-        if (charts[chartId]) {
-            charts[chartId].resize();
-        }
-    }
-
-    // Chart Color Palette
-    const COLORS = [
-        '#4285F4', // Google Blue
-        '#34A853', // Google Green
-        '#FBBC05', // Google Yellow
-        '#EA4335', // Google Red
-        '#8F00FF', // Purple
-        '#00C7BE', // Teal
-        '#FF9500', // Orange
-        '#5856D6', // Indigo
-        '#AF52DE', // Pink
-        '#5AC8FA'  // Sky
-    ];
-
-    function createChart(id, labels, data) {
-        const ctx = document.getElementById(id);
+    function initChart() {
+        var el = document.getElementById('chart-data');
+        if (!el) return;
+        var data = JSON.parse(el.textContent);
+        var ctx = document.getElementById('trendChart');
         if (!ctx) return;
 
-        const labelsWithCounts = labels.map((label, i) => `${label} (${data[i]})`);
-
-        charts[id] = new Chart(ctx, {
-            type: 'doughnut',
+        new Chart(ctx, {
+            type: 'bar',
             data: {
-                labels: labelsWithCounts,
-                datasets: [{
-                    data: data,
-                    backgroundColor: COLORS,
-                    borderWidth: 0,
-                    hoverOffset: 15
-                }]
+                labels: data.labels,
+                datasets: [
+                    {
+                        label: 'Productivity Gain ($)',
+                        data: data.prod_data,
+                        backgroundColor: '#4285F4', // Google Blue
+                        borderRadius: 6
+                    },
+                    {
+                        label: 'Revenue Impact ($)',
+                        data: data.rev_data,
+                        backgroundColor: '#34A853', // Google Green
+                        borderRadius: 6
+                    }
+                ]
             },
             options: {
-                cutout: '65%',
                 responsive: true,
                 maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false }
+                    },
+                    y: {
+                        stacked: true,
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function (value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        }
+                    }
+                },
                 plugins: {
                     legend: {
-                        display: true,
-                        position: 'right',
+                        position: 'bottom',
                         labels: {
-                            color: 'var(--text-secondary)',
-                            font: {
-                                size: 11,
-                                family: 'ui-sans-serif, system-ui, sans-serif'
+                            usePointStyle: true,
+                            padding: 20,
+                            font: { family: 'Inter', size: 12 }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                var label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                }
+                                return label;
                             }
                         }
                     }
@@ -534,29 +700,40 @@
         });
     }
 
-    // Initialize charts if data exists
-    {% if total_initiatives > 0 %}
-    (function () {
-        function getJsonData(id) {
-            var el = document.getElementById(id);
-            if (!el) return null;
-            try { return JSON.parse(el.textContent); }
-            catch (e) { return null; }
+    function switchTable(type) {
+        var btnMonth = document.getElementById('btnMonth');
+        var btnInitiative = document.getElementById('btnInitiative');
+        var btnFunction = document.getElementById('btnFunction');
+
+        var tableMonth = document.getElementById('tableMonth');
+        var tableInitiative = document.getElementById('tableInitiative');
+        var tableFunction = document.getElementById('tableFunction');
+
+        // Reset all buttons and tables
+        btnMonth.className = 'btn-toggle';
+        btnInitiative.className = 'btn-toggle';
+        btnFunction.className = 'btn-toggle';
+
+        tableMonth.style.display = 'none';
+        tableInitiative.style.display = 'none';
+        tableFunction.style.display = 'none';
+
+        if (type === 'month') {
+            btnMonth.className = 'btn-toggle active';
+            tableMonth.style.display = 'block';
+        } else if (type === 'initiative') {
+            btnInitiative.className = 'btn-toggle active';
+            tableInitiative.style.display = 'block';
+        } else if (type === 'function') {
+            btnFunction.className = 'btn-toggle active';
+            tableFunction.style.display = 'block';
         }
-
-        var deptData = getJsonData('dept-data');
-        var statusData = getJsonData('status-data');
-        var techData = getJsonData('tech-data');
-
-        if (deptData) createChart('deptChart', deptData.labels, deptData.counts);
-        if (statusData) createChart('statusChart', statusData.labels, statusData.counts);
-        if (techData) createChart('techChart', techData.labels, techData.counts);
-    })();
-    {% endif %}
-
-    function showBreakdown(dept) {
-        var url = "{% url 'initiative_list' %}";
-        window.location.href = url + "?department=" + encodeURIComponent(dept);
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        initChart();
+        var initialTab = "{{ active_tab|default:'initiative' }}";
+        switchTable(initialTab);
+    });
 </script>
 {% endblock %}

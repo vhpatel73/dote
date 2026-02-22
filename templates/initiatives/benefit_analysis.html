@@ -3,49 +3,84 @@
 
 {% block content %}
 <header style="margin-bottom: 2rem;">
-    <h1>Monthly <span class="gradient-text">Trends</span></h1>
-    <p class="stat-label" style="font-size: 0.7rem; margin-top: -0.5rem;">Time-series analysis of realized AI value.</p>
+    <h1>Portfolio <span class="gradient-text">Distribution</span></h1>
+    <p class="stat-label" style="font-size: 0.7rem; margin-top: -0.5rem;">Visual breakdown of AI capabilities
+        across business functions.</p>
 </header>
 
-<div class="card glass" style="margin-bottom: 3rem; padding: 2rem;">
-    <h3 style="text-align: center; margin-bottom: 2rem;">Productivity vs Revenue Impact</h3>
-    <div style="height: 400px; position: relative; display: flex; justify-content: center; align-items: center;">
-        <canvas id="trendChart"></canvas>
-    </div>
-</div>
 
-<div class="card glass" style="padding: 2rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h3>Detailed Breakdown</h3>
-        <div class="toggle-switch">
-            <button id="btnMonth" class="btn-toggle active" onclick="switchTable('month')">By Month</button>
-            <button id="btnInitiative" class="btn-toggle" onclick="switchTable('initiative')">By Initiative</button>
+
+<div class="card glass" style="padding: 2rem; margin-bottom: 3rem;">
+    <!-- <h3 style="margin-bottom: 1.5rem;">Summarized View</h3> -->
+
+    <!-- Overall Status Stacked Bar -->
+    <div style="margin-bottom: 2.5rem;">
+        <div
+            style="display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-size: 0.75rem; color: var(--text-secondary); font-weight: 500;">
+            <span>Overall Progress</span>
+            <span>{{ overall_total }} Total Initiatives</span>
+        </div>
+        <div
+            style="width: 100%; height: 28px; border-radius: 8px; overflow: hidden; display: flex; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="width: {% widthratio overall_live overall_total 100 %}%; background: #34A853; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: width 0.5s ease;"
+                title="Live: {{ overall_live }}">
+                {% if overall_live > 0 %}{{ overall_live }}{% endif %}
+            </div>
+            <div style="width: {% widthratio overall_in_progress overall_total 100 %}%; background: #FF9500; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: width 0.5s ease;"
+                title="In-progress: {{ overall_in_progress }}">
+                {% if overall_in_progress > 0 %}{{ overall_in_progress }}{% endif %}
+            </div>
+            <div style="width: {% widthratio overall_planning overall_total 100 %}%; background: #AF52DE; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.75rem; font-weight: 600; text-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: width 0.5s ease;"
+                title="Planning: {{ overall_planning }}">
+                {% if overall_planning > 0 %}{{ overall_planning }}{% endif %}
+            </div>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-top: 0.75rem; font-size: 0.7rem; color: var(--text-secondary);">
+            <div style="display: flex; align-items: center; gap: 4px;"><span
+                    style="width: 8px; height: 8px; border-radius: 50%; background: #34A853;"></span> Live</div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span
+                    style="width: 8px; height: 8px; border-radius: 50%; background: #FF9500;"></span> In-progress</div>
+            <div style="display: flex; align-items: center; gap: 4px;"><span
+                    style="width: 8px; height: 8px; border-radius: 50%; background: #AF52DE;"></span> Planning</div>
         </div>
     </div>
 
-    <div id="tableMonth">
-        <div class="trend-table-view">
-            <table class="trend-table">
+    <div style="display: flex; gap: 2rem; align-items: center; flex-wrap: wrap;">
+
+        <!-- Summarized Pie Chart -->
+        <div style="flex: 1; min-width: 250px; max-width: 300px;">
+            <div style="position: relative; height: 250px; width: 100%;">
+                <canvas id="summaryPieChart"></canvas>
+            </div>
+        </div>
+
+        <div class="trend-table-view" style="flex: 2; min-width: 300px; overflow-x: auto;">
+            <table class="trend-table" style="margin-top: 0;">
                 <thead>
                     <tr>
-                        <th>Month</th>
-                        <th style="text-align: right;">Productivity Gain ($)</th>
-                        <th style="text-align: right;">Revenue Impact ($)</th>
-                        <th style="text-align: right;">Total Impact ($)</th>
+                        <th>Function Name</th>
+                        <th style="text-align: right;">Live</th>
+                        <th style="text-align: right;">In-progress</th>
+                        <th style="text-align: right;">Planning</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for stat in table_by_month %}
+                    {% for dept in dept_summary %}
                     <tr>
-                        <td style="font-size: 0.75rem; font-weight: 600;">{{ stat.month_trunc|date:"F Y" }}</td>
-                        <td style="text-align: right; color: var(--primary-color); font-size: 0.75rem;">
-                            ${{ stat.prod_gain|floatformat:2|intcomma }}
+                        <td
+                            style="font-size: 0.75rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; border-bottom: none;">
+                            <span
+                                style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: {{ dept.color }};"></span>
+                            {{ dept.department|default:"No Dept" }}
                         </td>
                         <td style="text-align: right; color: #34A853; font-size: 0.75rem;">
-                            ${{ stat.rev_impact|floatformat:2|intcomma }}
+                            {{ dept.live }}
                         </td>
-                        <td style="text-align: right; font-weight: 700; color: #8F00FF; font-size: 0.75rem;">
-                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
+                        <td style="text-align: right; color: #FF9500; font-size: 0.75rem;">
+                            {{ dept.in_progress }}
+                        </td>
+                        <td style="text-align: right; color: #AF52DE; font-size: 0.75rem;">
+                            {{ dept.planning }}
                         </td>
                     </tr>
                     {% empty %}
@@ -57,125 +92,6 @@
                 </tbody>
             </table>
         </div>
-        <div class="trend-card-view">
-            {% for stat in table_by_month %}
-            <div class="mobile-trend-card">
-                <div class="trend-card-header">
-                    <strong>{{ stat.month_trunc|date:"F Y" }}</strong>
-                </div>
-                <div class="trend-card-body">
-                    <div class="trend-stat-row">
-                        <span class="trend-stat-label">Productivity</span>
-                        <span class="trend-stat-value" style="color: var(--primary-color);">
-                            ${{ stat.prod_gain|floatformat:0|intcomma }}</span>
-                    </div>
-                    <div class="trend-stat-row">
-                        <span class="trend-stat-label">Revenue</span>
-                        <span class="trend-stat-value" style="color: #166534;">
-                            ${{ stat.rev_impact|floatformat:0|intcomma }}</span>
-                    </div>
-                    <div class="trend-stat-row total">
-                        <span class="trend-stat-label">Total Impact</span>
-                        <span class="trend-stat-value" style="color: #8F00FF;">
-                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <div id="tableInitiative" style="display: none;">
-        <div class="trend-table-view">
-            <table class="trend-table">
-                <thead>
-                    <tr>
-                        <th>Initiative Name</th>
-                        <th>KPI</th>
-                        <th style="text-align: right;">Productivity Gain ($)</th>
-                        <th style="text-align: right;">Revenue Impact ($)</th>
-                        <th style="text-align: right;">Total Impact ($)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for stat in table_by_initiative %}
-                    <tr>
-                        <td style="font-size: 0.75rem; font-weight: 600;">
-                            <a href="{% url 'benefit_entry' stat.initiative__id %}"
-                                style="text-decoration: none; color: inherit;" class="edit-link">
-                                {{ stat.initiative__name }}
-                            </a>
-                        </td>
-                        <td style="font-size: 0.75rem;">
-                            <span style="font-weight: 600;">{{ stat.total_kpi|floatformat:0|intcomma }}</span>
-                            <span style="font-size: 0.65rem; color: var(--text-secondary); margin-left: 4px;">
-                                {{ stat.initiative__kpi_name|default:"KPI" }}</span>
-                        </td>
-                        <td style="text-align: right; color: var(--primary-color); font-size: 0.75rem;">
-                            ${{ stat.prod_gain|floatformat:2|intcomma }}
-                        </td>
-                        <td style="text-align: right; color: #34A853; font-size: 0.75rem;">
-                            ${{ stat.rev_impact|floatformat:2|intcomma }}
-                        </td>
-                        <td style="text-align: right; font-weight: 700; color: #8F00FF; font-size: 0.75rem;">
-                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:2|intcomma }}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 2rem; opacity: 0.5;">No data available yet.
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-        <div class="trend-card-view">
-            {% for stat in table_by_initiative %}
-            <div class="mobile-trend-card">
-                <div class="trend-card-header">
-                    <strong>
-                        <a href="{% url 'benefit_entry' stat.initiative__id %}"
-                            style="text-decoration: none; color: inherit;" class="edit-link">
-                            {{ stat.initiative__name }}
-                        </a>
-                    </strong>
-                    <div>
-                        <span style="font-weight: 600; font-size: 0.8rem;">{{ stat.total_kpi|floatformat:0|intcomma
-                            }}</span>
-                        <span style="font-size: 0.6rem; color: var(--text-secondary); margin-left: 2px;">{{
-                            stat.initiative__kpi_name|default:"KPI" }}</span>
-                    </div>
-                </div>
-                <div class="trend-card-body">
-                    <div class="trend-stat-row">
-                        <span class="trend-stat-label">Productivity</span>
-                        <span class="trend-stat-value" style="color: var(--primary-color);">${{
-                            stat.prod_gain|floatformat:0|intcomma }}</span>
-                    </div>
-                    <div class="trend-stat-row">
-                        <span class="trend-stat-label">Revenue</span>
-                        <span class="trend-stat-value" style="color: #166534;">${{
-                            stat.rev_impact|floatformat:0|intcomma }}</span>
-                    </div>
-                    <div class="trend-stat-row total">
-                        <span class="trend-stat-label">Total Impact</span>
-                        <span class="trend-stat-value" style="color: #8F00FF;">${{
-                            stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-    </div>
-
-    <!-- Export Section -->
-    <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
-        <a href="{% url 'benefit_csv_download' %}" class="btn-secondary"
-            style="font-size: 0.85rem; padding: 0.5rem 1rem; font-weight: 400;">
-            <i class="fas fa-file-excel" style="font-size: 0.95rem; margin-right: 0.5rem; color: #217346;"></i> Export
-            Benefit Data
-        </a>
     </div>
 </div>
 
@@ -197,209 +113,403 @@
     }
 
     .trend-table td {
-        padding: 1rem;
+        padding: 0.65rem;
         border-bottom: 1px solid var(--border-color);
-        font-size: 0.9rem;
+    }
+</style>
+<style>
+    .initiatives-header {
+        margin-top: 4rem;
+        margin-bottom: 2rem;
     }
 
-    .toggle-switch {
-        background: rgba(255, 255, 255, 0.5);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 4px;
+    .initiatives-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    @media (min-width: 768px) {
+        .initiatives-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .initiatives-grid {
+            grid-template-columns: repeat(6, 1fr);
+        }
+    }
+
+    .initiative-square-card {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        padding: 1.5rem;
         display: flex;
-        gap: 4px;
-    }
-
-    .btn-toggle {
-        border: none;
-        background: transparent;
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-        color: var(--text-secondary);
-    }
-
-    .btn-toggle.active {
-        background: white;
-        color: var(--primary-color);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    }
-
-    .badge {
-        background: rgba(0, 122, 255, 0.1);
-        color: var(--primary-color);
-        padding: 0.25rem 0.5rem;
-        border-radius: 6px;
-        font-size: 0.7rem;
-        font-weight: 700;
-    }
-
-    .trend-card-view {
-        display: none;
         flex-direction: column;
+        justify-content: space-between;
+        background:
+            radial-gradient(circle at top right, rgba(var(--flare-1, 143, 0, 255), 0.06), transparent 60%),
+            radial-gradient(circle at bottom left, rgba(var(--flare-2, 66, 133, 244), 0.06), transparent 60%),
+            linear-gradient(135deg, var(--bg-secondary, rgba(255, 255, 255, 0.9)), rgba(255, 255, 255, 0.4));
+        background-color: var(--bg-secondary, #ffffff);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid var(--border-color, rgba(0, 0, 0, 0.05));
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+        cursor: default;
+    }
+
+    .initiative-square-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+
+    .initiative-square-card:hover .desc-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .card-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
         gap: 1rem;
+    }
+
+    .init-name {
+        font-size: 0.82rem;
+        font-weight: 600;
+        line-height: 1.3;
+        color: var(--text-primary);
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        margin: 0;
+        /* Flexible height up to 4 lines */
+    }
+
+    /* Status indicator */
+    .status-indicator {
+        position: relative;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 2px;
+        box-shadow: 0 0 0 2px var(--bg-secondary, #fff);
+    }
+
+    /* Using generic colors that look premium */
+    .status-indicator.status-live {
+        background: linear-gradient(135deg, #34A853, #2E8E44);
+    }
+
+    .status-indicator.status-development {
+        background: linear-gradient(135deg, #FBBC05, #DDA004);
+    }
+
+    .status-indicator.status-ideation {
+        background: linear-gradient(135deg, #4285F4, #3367D6);
+    }
+
+    .status-indicator.status-production {
+        background: linear-gradient(135deg, #34A853, #2E8E44);
+    }
+
+    .status-indicator.status-pilot {
+        background: linear-gradient(135deg, #00C7BE, #00A69D);
+    }
+
+    .status-indicator.status-on-hold {
+        background: linear-gradient(135deg, #EA4335, #C5221F);
+    }
+
+    .status-indicator.status-in-progress {
+        background: linear-gradient(135deg, #FF9500, #E08200);
+        /* Orange */
+    }
+
+    .status-indicator.status-planning {
+        background: linear-gradient(135deg, #AF52DE, #9B49C4);
+        /* Pink/Purple */
+    }
+
+    .status-indicator.status-default {
+        background: linear-gradient(135deg, #9AA0A6, #80868B);
+    }
+
+    .tags-container {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: nowrap;
+        overflow: hidden;
         margin-top: 1rem;
     }
 
-    .mobile-trend-card {
-        background: rgba(255, 255, 255, 0.4);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 1rem;
-    }
-
-    .trend-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.75rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .trend-stat-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.25rem 0;
-    }
-
-    .trend-stat-row.total {
-        margin-top: 0.25rem;
-        padding-top: 0.5rem;
-        border-top: 1px dashed var(--border-color);
-        font-weight: 700;
-    }
-
-    .trend-stat-label {
-        font-size: 0.75rem;
+    .tiny-tag {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 3px 3px;
+        border-radius: 6px;
+        background: rgba(182, 225, 254, 0.111);
         color: var(--text-secondary);
+        white-space: nowrap;
+        font-weight: 500;
+        border: 1px solid rgba(95, 156, 255, 0.275);
     }
 
-    .trend-stat-value {
-        font-size: 0.9rem;
-        font-weight: 600;
+    .card-bottom {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
     }
 
-    @media screen and (max-width: 768px) {
-        .trend-table-view {
-            display: none;
-        }
+    .impact-label {
+        font-size: 0.7rem;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 500;
+    }
 
-        .trend-card-view {
-            display: flex;
-        }
+    .impact-amount {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        background: linear-gradient(90deg, var(--text-primary), var(--text-secondary));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
 
-        .card.glass {
-            padding: 1.25rem !important;
-        }
+    .desc-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background:
+            radial-gradient(circle at top right, rgba(var(--flare-1, 143, 0, 255), 0.5), transparent 70%),
+            radial-gradient(circle at bottom left, rgba(var(--flare-2, 66, 133, 244), 0.5), transparent 70%),
+            rgba(26, 82, 218, 0.85);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 1.25rem;
+        padding-bottom: 3.5rem;
+        /* Reserve space for floating action map */
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+        display: flex;
+        flex-direction: column;
+        z-index: 10;
+        border-radius: 16px;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    }
+
+    .hover-actions {
+        position: absolute;
+        bottom: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.35rem 0.5rem;
+        background: rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .hover-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        font-size: 0.85rem;
+    }
+
+    .hover-btn:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        transform: translateY(-2px);
+    }
+
+    .desc-text {
+        font-size: 0.75rem;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.95);
+        font-weight: 300;
+        letter-spacing: 0.015em;
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+        text-align: left;
+
+        /* Modern Thin Scrollbar */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+    }
+
+    .desc-text::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .desc-text::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .desc-text::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 10px;
+    }
+
+    [data-theme="dark"] .initiative-square-card {
+        background:
+            radial-gradient(circle at top right, rgba(var(--flare-1, 143, 0, 255), 0.15), transparent 60%),
+            radial-gradient(circle at bottom left, rgba(var(--flare-2, 66, 133, 244), 0.15), transparent 60%),
+            linear-gradient(135deg, rgba(20, 20, 20, 0.8), rgba(30, 30, 30, 0.4));
+        background-color: rgba(20, 20, 20, 0.95);
+        border-color: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    }
+
+    [data-theme="dark"] .status-indicator {
+        box-shadow: 0 0 0 2px var(--bg-secondary, #1a1a1a);
     }
 </style>
+
+<div class="initiatives-header">
+    <h2>Initiatives <span class="gradient-text">Overview</span></h2>
+    <p class="stat-label" style="font-size: 0.7rem; margin-top: -0.5rem;">Detailed functional view of AI adoption.</p>
+</div>
+
+<div class="initiatives-grid">
+    {% for init in initiatives %}
+    <div class="initiative-square-card glass"
+        style="--flare-1: {% cycle '143, 0, 255' '0, 199, 190' '255, 149, 0' '175, 82, 222' '88, 86, 214' '66, 133, 244' '52, 168, 83' '234, 67, 53' %}; --flare-2: {% cycle '66, 133, 244' '52, 168, 83' '234, 67, 53' '251, 188, 5' '90, 200, 250' '0, 199, 190' '143, 0, 255' '175, 82, 222' %};">
+        <div class="card-top">
+            <div class="card-header-flex">
+                <h4 class="init-name" title="{{ init.name }}">{{ init.name }}</h4>
+                <!-- Use a generic status fallback if no specific color matches -->
+                <div class="status-indicator status-{{ init.status|lower|default:'default' }}"
+                    title="Status: {{ init.status|default:'Unknown' }}"></div>
+            </div>
+
+        </div>
+
+
+        <div class="card-bottom">
+            <div class="tags-container">
+                <span class="tiny-tag" style="font-size: .5rem;">{{ init.department|default:"No Dept" }}</span>
+            </div>
+        </div>
+
+        <div class="desc-overlay">
+            <div class="desc-text">{{ init.description|default:"No description provided for this initiative." }}</div>
+            <div class="hover-actions">
+                <a href="{% url 'initiative_edit' init.pk %}" class="hover-btn" title="View / Edit Initiative">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="{% url 'benefit_entry' init.pk %}" class="hover-btn" title="Add Benefit">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
 
 {% endblock %}
 
 {% block extra_js %}
-{{ chart_data|json_script:"chart-data" }}
+{{ dept_data|json_script:"dept-data" }}
 <script>
-    function initChart() {
-        var el = document.getElementById('chart-data');
-        if (!el) return;
-        var data = JSON.parse(el.textContent);
-        var ctx = document.getElementById('trendChart');
+    // Chart Color Palette
+    const COLORS = [
+        '#4285F4', // Google Blue
+        '#34A853', // Google Green
+        '#FBBC05', // Google Yellow
+        '#EA4335', // Google Red
+        '#8F00FF', // Purple
+        '#00C7BE', // Teal
+        '#FF9500', // Orange
+        '#5856D6', // Indigo
+        '#AF52DE', // Pink
+        '#5AC8FA'  // Sky
+    ];
+
+
+
+    function createPieChart(id, labels, data) {
+        const ctx = document.getElementById(id);
         if (!ctx) return;
 
         new Chart(ctx, {
-            type: 'bar',
+            type: 'doughnut',
             data: {
-                labels: data.labels,
-                datasets: [
-                    {
-                        label: 'Productivity Gain ($)',
-                        data: data.prod_data,
-                        backgroundColor: '#4285F4', // Google Blue
-                        borderRadius: 6
-                    },
-                    {
-                        label: 'Revenue Impact ($)',
-                        data: data.rev_data,
-                        backgroundColor: '#34A853', // Google Green
-                        borderRadius: 6
-                    }
-                ]
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: COLORS,
+                    borderWidth: 0,
+                    hoverOffset: 15
+                }]
             },
             options: {
+                cutout: '75%',
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                    x: {
-                        stacked: true,
-                        grid: { display: false }
-                    },
-                    y: {
-                        stacked: true,
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function (value) {
-                                return '$' + value.toLocaleString();
-                            }
-                        }
-                    }
-                },
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            usePointStyle: true,
-                            padding: 20,
-                            font: { family: 'Inter', size: 12 }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function (context) {
-                                var label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.y !== null) {
-                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
-                                }
-                                return label;
-                            }
-                        }
+                        display: false
                     }
+                },
+                layout: {
+                    padding: 10
                 }
             }
         });
     }
 
-    function switchTable(type) {
-        var btnMonth = document.getElementById('btnMonth');
-        var btnInitiative = document.getElementById('btnInitiative');
-        var tableMonth = document.getElementById('tableMonth');
-        var tableInitiative = document.getElementById('tableInitiative');
-
-        if (type === 'month') {
-            btnMonth.className = 'btn-toggle active';
-            btnInitiative.className = 'btn-toggle';
-            tableMonth.style.display = 'block';
-            tableInitiative.style.display = 'none';
-        } else {
-            btnInitiative.className = 'btn-toggle active';
-            btnMonth.className = 'btn-toggle';
-            tableInitiative.style.display = 'block';
-            tableMonth.style.display = 'none';
+    // Initialize charts if data exists
+    (function () {
+        function getJsonData(id) {
+            var el = document.getElementById(id);
+            if (!el) return null;
+            try { return JSON.parse(el.textContent); }
+            catch (e) { return null; }
         }
-    }
 
-    document.addEventListener('DOMContentLoaded', function () {
-        initChart();
-        var initialTab = "{{ active_tab|default:'month' }}";
-        switchTable(initialTab);
-    });
+        var deptData = getJsonData('dept-data');
+
+        if (deptData) {
+            createPieChart('summaryPieChart', deptData.labels, deptData.counts);
+        }
+    })();
+
+    function showBreakdown(dept) {
+        var url = "{% url 'initiative_list' %}";
+        window.location.href = url + "?department=" + encodeURIComponent(dept);
+    }
 </script>
 {% endblock %}
