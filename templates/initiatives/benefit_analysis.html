@@ -477,7 +477,12 @@
 <div class="initiatives-grid">
     {% for init in initiatives %}
     <div class="initiative-square-card glass initiative-card-filter" data-status="{{ init.status }}"
-        style="--flare-1: {% cycle '143, 0, 255' '0, 199, 190' '255, 149, 0' '175, 82, 222' '88, 86, 214' '66, 133, 244' '52, 168, 83' '234, 67, 53' %}; --flare-2: {% cycle '66, 133, 244' '52, 168, 83' '234, 67, 53' '251, 188, 5' '90, 200, 250' '0, 199, 190' '143, 0, 255' '175, 82, 222' %};">
+        data-name="{{ init.name }}" data-department="{{ init.department|default:'No Dept' }}"
+        data-technology="{{ init.technology|default:'None' }}" data-impact="{{ init.total_impact|default_if_none:0 }}"
+        data-description="{{ init.description|default:'No description provided for this initiative.' }}"
+        data-edit-url="{% url 'initiative_edit' init.pk %}" data-benefit-url="{% url 'benefit_entry' init.pk %}"
+        onclick="showToastInfo(this)"
+        style="--flare-1: {% cycle '143, 0, 255' '0, 199, 190' '255, 149, 0' '175, 82, 222' '88, 86, 214' '66, 133, 244' '52, 168, 83' '234, 67, 53' %}; --flare-2: {% cycle '66, 133, 244' '52, 168, 83' '234, 67, 53' '251, 188, 5' '90, 200, 250' '0, 199, 190' '143, 0, 255' '175, 82, 222' %}; cursor: pointer;">
         <div class="card-top">
             <div class="card-header-flex">
                 <h4 class="init-name" title="{{ init.name }}">{{ init.name }}</h4>
@@ -497,18 +502,145 @@
 
         <div class="desc-overlay">
             <div class="desc-text">{{ init.description|default:"No description provided for this initiative." }}</div>
-            <div class="hover-actions">
-                <a href="{% url 'initiative_edit' init.pk %}" class="hover-btn" title="View / Edit Initiative">
-                    <i class="fas fa-edit"></i>
-                </a>
-                <a href="{% url 'benefit_entry' init.pk %}" class="hover-btn" title="Add Benefit">
-                    <i class="fas fa-plus"></i>
-                </a>
-            </div>
         </div>
     </div>
     {% endfor %}
 </div>
+
+<!-- Toast Modal Container -->
+<div id="initiativeToast" class="initiative-toast">
+    <div class="toast-content glass">
+        <button class="toast-close" onclick="closeToast(event)"><i class="fas fa-times"></i></button>
+        <div class="toast-header">
+            <h3 id="toastName" class="gradient-text">Initiative Name</h3>
+            <span id="toastDept" class="badge"
+                style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">Department</span>
+        </div>
+        <div class="toast-body">
+            <p id="toastDesc" class="toast-desc">Description</p>
+            <div class="toast-meta">
+                <span><i class="fas fa-microchip"></i> <span id="toastTech">Technology</span></span>
+                <span id="toastImpactContainer"><i class="fas fa-chart-line"></i> Total Impact: $<span
+                        id="toastImpact">0</span></span>
+            </div>
+        </div>
+        <div class="toast-footer">
+            <a href="#" id="toastEditBtn" class="btn-secondary"><i class="fas fa-edit"></i> Edit</a>
+            <a href="#" id="toastBenefitBtn" class="btn-primary"><i class="fas fa-plus"></i> Add Benefit</a>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Toast Modal Styles */
+    .initiative-toast {
+        position: fixed;
+        bottom: -100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 500px;
+        z-index: 1000;
+        transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        visibility: hidden;
+    }
+
+    .initiative-toast.show {
+        bottom: 2rem;
+        visibility: visible;
+    }
+
+    .toast-content {
+        padding: 1.5rem;
+        position: relative;
+        border: 2px solid var(--primary-color);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+        background: var(--bg-secondary, #ffffff);
+        border-radius: 16px;
+    }
+
+    [data-theme="dark"] .toast-content {
+        background: rgba(30, 30, 30, 0.95);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .toast-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: transparent;
+        border: none;
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .toast-close:hover {
+        color: var(--primary-color);
+    }
+
+    .toast-header {
+        margin-bottom: 1rem;
+        padding-right: 2rem;
+    }
+
+    .toast-header h3 {
+        margin-bottom: 0.5rem;
+        font-size: 1.25rem;
+    }
+
+    .toast-desc {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+        max-height: 120px;
+        overflow-y: auto;
+    }
+
+    .toast-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.8rem;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .toast-meta i {
+        color: var(--primary-color);
+        margin-right: 0.25rem;
+    }
+
+    .toast-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .toast-footer a {
+        flex: 1;
+        text-align: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+
+    @media (max-width: 480px) {
+        .initiative-toast.show {
+            bottom: 1rem;
+        }
+
+        .toast-footer {
+            flex-direction: column;
+        }
+
+        .toast-content {
+            padding: 1.25rem;
+        }
+    }
+</style>
 
 {% endblock %}
 
@@ -604,5 +736,48 @@
             filterInitiatives('Live', defaultBtn);
         }
     });
+
+    function showToastInfo(element) {
+        // Prevent triggering if clicked on inner actions directly
+        if (event.target.closest('.hover-actions')) return;
+
+        const name = element.getAttribute('data-name');
+        const dept = element.getAttribute('data-department');
+        const tech = element.getAttribute('data-technology');
+        const impact = element.getAttribute('data-impact');
+        const desc = element.getAttribute('data-description');
+        const editUrl = element.getAttribute('data-edit-url');
+        const benefitUrl = element.getAttribute('data-benefit-url');
+
+        document.getElementById('toastName').textContent = name;
+        document.getElementById('toastDept').textContent = dept;
+        document.getElementById('toastTech').textContent = tech;
+
+        const impactVal = parseFloat(impact) || 0;
+        const formatter = new Intl.NumberFormat('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        document.getElementById('toastImpact').textContent = formatter.format(impactVal);
+
+        const impactContainer = document.getElementById('toastImpactContainer');
+        if (impactVal === 0) {
+            impactContainer.style.display = 'none';
+        } else {
+            impactContainer.style.display = 'inline';
+        }
+
+        document.getElementById('toastDesc').textContent = desc;
+
+        document.getElementById('toastEditBtn').href = editUrl;
+        document.getElementById('toastBenefitBtn').href = benefitUrl;
+
+        const toast = document.getElementById('initiativeToast');
+        toast.classList.add('show');
+    }
+
+    function closeToast(event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        document.getElementById('initiativeToast').classList.remove('show');
+    }
 </script>
 {% endblock %}
