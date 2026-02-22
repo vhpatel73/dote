@@ -104,12 +104,6 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 1000px; margin: 0 auto 1rem;">
-    <a href="{% if initiative %}{% url 'benefit_entry' initiative.pk %}{% else %}{% url 'dashboard' %}{% endif %}"
-        class="action-btn" style="width: auto; padding: 0.5rem 1rem; display: inline-flex;">
-        <i class="fas fa-arrow-left"></i>&nbsp;&nbsp;Back
-    </a>
-</div>
 
 <!-- ═══════════════════ HERO ═══════════════════ -->
 <section class="hero-section">
