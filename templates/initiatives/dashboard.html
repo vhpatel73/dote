@@ -33,7 +33,7 @@
         <div class="stat-value">{{ live_systems }}</div>
     </div>
     <div class="stat-card glass clickable-card"
-        onclick="location.href='{% url 'benefit_analysis' %}?tab=initiative&sort=prod';">
+        onclick="switchTable('month'); document.getElementById('detailed-breakdown').scrollIntoView({behavior: 'smooth'});">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(251, 188, 5, 0.1); color: #FBBC05;">
                 <i class="fas fa-stopwatch"></i>
@@ -46,7 +46,7 @@
         <div class="stat-value">${{ total_productivity|floatformat:2|intcomma }}</div>
     </div>
     <div class="stat-card glass clickable-card"
-        onclick="location.href='{% url 'benefit_analysis' %}?tab=initiative&sort=rev';">
+        onclick="switchTable('month'); document.getElementById('detailed-breakdown').scrollIntoView({behavior: 'smooth'});">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(234, 67, 53, 0.1); color: #EA4335;">
                 <i class="fas fa-file-invoice"></i>
@@ -59,7 +59,7 @@
         <div class="stat-value">${{ total_revenue|floatformat:2|intcomma }}</div>
     </div>
     <div class="stat-card glass clickable-card total-impact-card"
-        onclick="location.href='{% url 'benefit_analysis' %}?tab=month';">
+        onclick="switchTable('month'); document.getElementById('detailed-breakdown').scrollIntoView({behavior: 'smooth'});">
         <div class="stat-header">
             <div class="stat-icon-box" style="background: rgba(143, 0, 255, 0.1); color: #8F00FF;">
                 <i class="fas fa-signal"></i>
@@ -273,9 +273,9 @@
     </div>
 </div>
 
-<div class="card glass" style="padding: 2rem;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-        <h3>Detailed Breakdown</h3>
+<div id="detailed-breakdown" class="card glass" style="padding: 2rem;">
+    <div class="breakdown-header">
+        <h3 style="margin: 0;">Detailed Breakdown</h3>
         <div class="toggle-switch">
             <button id="btnInitiative" class="btn-toggle active" onclick="switchTable('initiative')">By
                 Initiative</button>
@@ -401,28 +401,29 @@
                             {{ stat.initiative__name }}
                         </a>
                     </strong>
-                    <div>
-                        <span style="font-weight: 600; font-size: 0.8rem;">{{ stat.total_kpi|floatformat:0|intcomma
-                            }}</span>
-                        <span style="font-size: 0.6rem; color: var(--text-secondary); margin-left: 2px;">{{
-                            stat.initiative__kpi_name|default:"KPI" }}</span>
+                    <div style="text-align: right;">
+                        <span style="font-weight: 600; font-size: 0.8rem;">
+                            {{ stat.total_kpi|floatformat:0|intcomma }}
+                        </span><br />
+                        <span style="font-size: 0.6rem; color: var(--text-secondary); margin-left: 2px;">
+                            {{ stat.initiative__kpi_name|default:"KPI" }}</span>
                     </div>
                 </div>
                 <div class="trend-card-body">
                     <div class="trend-stat-row">
                         <span class="trend-stat-label">Productivity</span>
-                        <span class="trend-stat-value" style="color: var(--primary-color);">${{
-                            stat.prod_gain|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: var(--primary-color);">
+                            ${{ stat.prod_gain|floatformat:0|intcomma }}</span>
                     </div>
                     <div class="trend-stat-row">
                         <span class="trend-stat-label">Revenue</span>
-                        <span class="trend-stat-value" style="color: #166534;">${{
-                            stat.rev_impact|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: #166534;">
+                            ${{ stat.rev_impact|floatformat:0|intcomma }}</span>
                     </div>
                     <div class="trend-stat-row total">
                         <span class="trend-stat-label">Total Impact</span>
-                        <span class="trend-stat-value" style="color: #8F00FF;">${{
-                            stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">
+                            ${{ stat.prod_gain|add:stat.rev_impact|floatformat:0|intcomma }}</span>
                     </div>
                 </div>
             </div>
@@ -473,18 +474,18 @@
                 <div class="trend-card-body">
                     <div class="trend-stat-row">
                         <span class="trend-stat-label">Productivity</span>
-                        <span class="trend-stat-value" style="color: var(--primary-color);">${{
-                            stat.prod_gain|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: var(--primary-color);">
+                            ${{ stat.prod_gain|floatformat:0|intcomma }}</span>
                     </div>
                     <div class="trend-stat-row">
                         <span class="trend-stat-label">Revenue</span>
-                        <span class="trend-stat-value" style="color: #166534;">${{
-                            stat.rev_impact|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: #166534;">
+                            ${{ stat.rev_impact|floatformat:0|intcomma }}</span>
                     </div>
                     <div class="trend-stat-row total">
                         <span class="trend-stat-label">Total Impact</span>
-                        <span class="trend-stat-value" style="color: #8F00FF;">${{
-                            stat.total_impact|floatformat:0|intcomma }}</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">
+                            ${{ stat.total_impact|floatformat:0|intcomma }}</span>
                     </div>
                 </div>
             </div>
@@ -503,6 +504,14 @@
 </div>
 
 <style>
+    .breakdown-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        gap: 1rem;
+    }
+
     .trend-table {
         width: 100%;
         border-collapse: collapse;
@@ -544,6 +553,7 @@
         cursor: pointer;
         transition: all 0.2s;
         color: var(--text-secondary);
+        flex-shrink: 0;
     }
 
     .btn-toggle.active {
@@ -619,6 +629,32 @@
 
         .card.glass {
             padding: 1.25rem !important;
+        }
+
+        .breakdown-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .toggle-switch {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            /* Firefox */
+            justify-content: center;
+        }
+
+        .toggle-switch::-webkit-scrollbar {
+            display: none;
+            /* Chrome, Safari, Opera */
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        .btn-toggle {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.75rem;
         }
     }
 </style>

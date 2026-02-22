@@ -164,6 +164,23 @@
         cursor: default;
     }
 
+    @media (max-width: 767px) {
+        .initiative-square-card {
+            aspect-ratio: auto;
+            min-height: 130px;
+            padding: 1.25rem;
+        }
+
+        .init-name {
+            font-size: 1.05rem !important;
+        }
+
+        .tiny-tag {
+            font-size: 0.75rem !important;
+            padding: 4px 6px !important;
+        }
+    }
+
     .initiative-square-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -396,16 +413,70 @@
     [data-theme="dark"] .status-indicator {
         box-shadow: 0 0 0 2px var(--bg-secondary, #1a1a1a);
     }
+
+    .toggle-switch {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 4px;
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .toggle-switch::-webkit-scrollbar {
+        display: none;
+    }
+
+    @media (min-width: 768px) {
+        .toggle-switch {
+            width: auto;
+        }
+    }
+
+    .btn-toggle {
+        border: none;
+        background: transparent;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-secondary);
+        flex-shrink: 0;
+    }
+
+    .btn-toggle.active {
+        background: white;
+        color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
 </style>
 
-<div class="initiatives-header">
-    <h2>Initiatives <span class="gradient-text">Overview</span></h2>
-    <p class="stat-label" style="font-size: 0.7rem; margin-top: -0.5rem;">Detailed functional view of AI adoption.</p>
+<div class="initiatives-header"
+    style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h2 style="margin-bottom: 0;">Initiatives <span class="gradient-text">Overview</span></h2>
+        <p class="stat-label" style="font-size: 0.7rem; margin-top: 0.2rem; margin-bottom: 0;">Detailed functional view
+            of AI adoption.</p>
+    </div>
+    <div class="toggle-switch">
+        <button class="btn-toggle active" data-filter="Live" onclick="filterInitiatives('Live', this)">Live</button>
+        <button class="btn-toggle" data-filter="In-progress"
+            onclick="filterInitiatives('In-progress', this)">In-progress</button>
+        <button class="btn-toggle" data-filter="Planning"
+            onclick="filterInitiatives('Planning', this)">Planning</button>
+    </div>
 </div>
 
 <div class="initiatives-grid">
     {% for init in initiatives %}
-    <div class="initiative-square-card glass"
+    <div class="initiative-square-card glass initiative-card-filter" data-status="{{ init.status }}"
         style="--flare-1: {% cycle '143, 0, 255' '0, 199, 190' '255, 149, 0' '175, 82, 222' '88, 86, 214' '66, 133, 244' '52, 168, 83' '234, 67, 53' %}; --flare-2: {% cycle '66, 133, 244' '52, 168, 83' '234, 67, 53' '251, 188, 5' '90, 200, 250' '0, 199, 190' '143, 0, 255' '175, 82, 222' %};">
         <div class="card-top">
             <div class="card-header-flex">
@@ -420,7 +491,7 @@
 
         <div class="card-bottom">
             <div class="tags-container">
-                <span class="tiny-tag" style="font-size: .5rem;">{{ init.department|default:"No Dept" }}</span>
+                <span class="tiny-tag">{{ init.department|default:"No Dept" }}</span>
             </div>
         </div>
 
@@ -511,5 +582,27 @@
         var url = "{% url 'initiative_list' %}";
         window.location.href = url + "?department=" + encodeURIComponent(dept);
     }
+
+    function filterInitiatives(status, btnElem) {
+        const buttons = document.querySelectorAll('.initiatives-header .btn-toggle');
+        buttons.forEach(btn => btn.classList.remove('active'));
+        btnElem.classList.add('active');
+
+        const cards = document.querySelectorAll('.initiative-card-filter');
+        cards.forEach(card => {
+            if (card.getAttribute('data-status') === status) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const defaultBtn = document.querySelector('.initiatives-header .btn-toggle[data-filter="Live"]');
+        if (defaultBtn) {
+            filterInitiatives('Live', defaultBtn);
+        }
+    });
 </script>
 {% endblock %}

@@ -199,7 +199,7 @@ class InitiativeListView(ListView):
     model = Initiative
     context_object_name = 'initiatives'
     template_name = 'initiatives/initiative_list.html'
-    paginate_by = 20
+    paginate_by = 10
 
     def get_queryset(self):
         queryset = super().get_queryset()
