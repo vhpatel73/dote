@@ -1,0 +1,28 @@
+{% load humanize %}
+
+{% if is_paginated %}
+<div class="mini-pagination" id="mini-pagination" {% if request.META.HTTP_HX_REQUEST %}hx-swap-oob="true" {% endif %}
+    style="display: flex; align-items: center; gap: 0.75rem; border: 1px solid rgba(0,0,0,0.1); border-radius: 16px; padding: 0.5rem 0.75rem; background: var(--bg-surface, #fff); box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}"
+        style="color: var(--text-primary); text-decoration: none; transition: 0.2s;"><i class="fas fa-chevron-left"
+            style="font-size: 0.75rem;"></i></a>
+    {% else %}
+    <span style="color: var(--text-secondary); opacity: 0.3;"><i class="fas fa-chevron-left"
+            style="font-size: 0.75rem;"></i></span>
+    {% endif %}
+    <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); white-space: nowrap;">
+        {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}"
+        style="color: var(--text-primary); text-decoration: none; transition: 0.2s;"><i class="fas fa-chevron-right"
+            style="font-size: 0.75rem;"></i></a>
+    {% else %}
+    <span style="color: var(--text-secondary); opacity: 0.3;"><i class="fas fa-chevron-right"
+            style="font-size: 0.75rem;"></i></span>
+    {% endif %}
+</div>
+{% else %}
+<div class="mini-pagination" id="mini-pagination" {% if request.META.HTTP_HX_REQUEST %}hx-swap-oob="true" {% endif %}
+    style="display: none;"></div>
+{% endif %}

@@ -201,6 +201,11 @@ class InitiativeListView(ListView):
     template_name = 'initiatives/initiative_list.html'
     paginate_by = 10
 
+    def get_template_names(self):
+        if self.request.headers.get('HX-Request'):
+            return ['initiatives/partials/initiative_list_results.html']
+        return ['initiatives/initiative_list.html']
+
     def get_queryset(self):
         queryset = super().get_queryset()
         
