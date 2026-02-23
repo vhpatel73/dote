@@ -5,13 +5,14 @@
 {% block content %}
 <div class="header-action-row">
     <h1>AI <span class="gradient-text">Initiatives</span></h1>
-    <div class="search-container">
-        <form method="get" class="search-form">
+    <div class="search-container" style="display: flex; align-items: center; gap: 1rem; flex-wrap: nowrap;">
+        <form method="get" class="search-form"
+            style="margin: 0; display: flex; flex-wrap: nowrap; align-items: center; gap: 1rem;">
             <div class="search-input-wrapper">
                 <i class="fas fa-search"></i>
                 <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search initiatives...">
             </div>
-            <div style="display: flex; gap: 0.5rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
                 <button type="submit" class="btn-primary">Filter</button>
                 {% if request.GET.q %}
                 <a href="{% url 'initiative_list' %}" class="btn-secondary" title="Clear Search">
@@ -20,6 +21,29 @@
                 {% endif %}
             </div>
         </form>
+        {% if is_paginated %}
+        <div class="mini-pagination"
+            style="display: flex; align-items: center; gap: 0.75rem; border: 1px solid rgba(0,0,0,0.1); border-radius: 16px; padding: 0.5rem 0.75rem; background: var(--bg-surface, #fff); box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}"
+                style="color: var(--text-primary); text-decoration: none; transition: 0.2s;"><i
+                    class="fas fa-chevron-left" style="font-size: 0.75rem;"></i></a>
+            {% else %}
+            <span style="color: var(--text-secondary); opacity: 0.3;"><i class="fas fa-chevron-left"
+                    style="font-size: 0.75rem;"></i></span>
+            {% endif %}
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-primary); white-space: nowrap;">
+                {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}"
+                style="color: var(--text-primary); text-decoration: none; transition: 0.2s;"><i
+                    class="fas fa-chevron-right" style="font-size: 0.75rem;"></i></a>
+            {% else %}
+            <span style="color: var(--text-secondary); opacity: 0.3;"><i class="fas fa-chevron-right"
+                    style="font-size: 0.75rem;"></i></span>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 
@@ -27,7 +51,7 @@
     <table>
         <thead style="vertical-align: top;">
             <tr>
-                <th>
+                <th style="font-size: 0.9rem; font-weight: 600; color: black;">
                     <a href="?sort={% if request.GET.sort == 'name' %}-name{% else %}name{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.technology %}&technology={{ request.GET.technology }}{% endif %}"
                         style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
                         Name
@@ -36,7 +60,7 @@
                         {% else %}<i class="fas fa-sort" style="opacity: 0.3;"></i>{% endif %}
                     </a>
                 </th>
-                <th>
+                <th style="font-size: 0.9rem; font-weight: 600; color: black;">
                     <a href="?sort={% if request.GET.sort == 'dept' %}-dept{% else %}dept{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.technology %}&technology={{ request.GET.technology }}{% endif %}"
                         style="color: inherit; text-decoration: none; display: flex; align-items: center; gap: 0.5rem;">
                         Function
@@ -45,11 +69,14 @@
                         {% else %}<i class="fas fa-sort" style="opacity: 0.3;"></i>{% endif %}
                     </a>
                 </th>
-                <th style="text-align: right; padding-right: 1.5rem;">Productivity Gain<br /><span class="text-tiny"
-                        style="font-size: xx-small;">($ Since inception)</span></th>
-                <th style="text-align: right; padding-right: 1.5rem;">Revenue Impact<br /><span class="text-tiny"
-                        style="font-size: xx-small;">($ Since inception)</span></th>
-                <th style="text-align: center;"> + Realized Benefit</th>
+                <th style="text-align: right; padding-right: 1.5rem; font-size:0.9rem; font-weight: 600; color: black;">
+                    Productivity Gain<br /><span class="text-tiny" style="font-size: xx-small;">($ Since
+                        inception)</span></th>
+                <th style="text-align: right; padding-right: 1.5rem; font-size:0.9rem; font-weight: 600; color: black;">
+                    Revenue Impact<br /><span class="text-tiny" style="font-size: xx-small;">($ Since inception)</span>
+                </th>
+                <th style="text-align: center; font-size:0.9rem; font-weight: 600; color: black;"> + Realized Benefit
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -93,7 +120,7 @@
                     {% endif %}
                 </td>
                 <td class="actions-cell" style="justify-content: center; text-align: center;">
-                    <a href="{% url 'benefit_entry' initiative.pk %}" class="action-btn"
+                    <a href="{% url 'benefit_entry' initiative.pk %}" class="action-btn table-action-btn"
                         style="font-size: 0.8rem; padding: 0.5rem 1rem; gap: 8px;" title="Add Realized Benefit">
                         + {{ initiative.kpi_name|default:"KPI"|truncatechars:18 }}
                     </a>
@@ -184,52 +211,93 @@
 </div>
 
 {% if is_paginated %}
-<nav class="pagination">
-    {% if page_obj.has_previous %}
-    <div class="page-item">
-        <a class="page-link"
-            href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">
+<div class="pagination-container"
+    style="display: flex; justify-content: center; margin-top: 2rem; margin-bottom: 2rem;">
+    <div class="main-pagination"
+        style="display: inline-flex; align-items: center; gap: 0.25rem; background: var(--bg-surface, #fff); border: 1px solid rgba(0,0,0,0.08); padding: 0.5rem; border-radius: 99px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+
+        {% if page_obj.has_previous %}
+        <a href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}"
+            class="page-btn" title="First Page">
             <i class="fas fa-angle-double-left"></i>
         </a>
-    </div>
-    <div class="page-item">
-        <a class="page-link"
-            href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">
+        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}"
+            class="page-btn" title="Previous Page">
             <i class="fas fa-angle-left"></i>
         </a>
-    </div>
-    {% else %}
-    <div class="page-item disabled">
-        <span class="page-link"><i class="fas fa-angle-left"></i></span>
-    </div>
-    {% endif %}
+        {% else %}
+        <span class="page-btn disabled" title="First Page"><i class="fas fa-angle-double-left"></i></span>
+        <span class="page-btn disabled" title="Previous Page"><i class="fas fa-angle-left"></i></span>
+        {% endif %}
 
-    <div class="page-item active">
-        <span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
-    </div>
+        <span class="page-indicator">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </span>
 
-    {% if page_obj.has_next %}
-    <div class="page-item">
-        <a class="page-link"
-            href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}"
+            class="page-btn" title="Next Page">
             <i class="fas fa-angle-right"></i>
         </a>
-    </div>
-    <div class="page-item">
-        <a class="page-link"
-            href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}">
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.department %}&department={{ request.GET.department }}{% endif %}"
+            class="page-btn" title="Last Page">
             <i class="fas fa-angle-double-right"></i>
         </a>
+        {% else %}
+        <span class="page-btn disabled" title="Next Page"><i class="fas fa-angle-right"></i></span>
+        <span class="page-btn disabled" title="Last Page"><i class="fas fa-angle-double-right"></i></span>
+        {% endif %}
     </div>
-    {% else %}
-    <div class="page-item disabled">
-        <span class="page-link"><i class="fas fa-angle-right"></i></span>
-    </div>
-    {% endif %}
-</nav>
+</div>
+
+<style>
+    @media (max-width: 768px) {
+        .mini-pagination {
+            display: none !important;
+        }
+    }
+
+    .main-pagination .page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        color: var(--text-secondary);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-size: 0.85rem;
+    }
+
+    .main-pagination .page-btn:not(.disabled):hover {
+        background: var(--primary-color, #007aff);
+        color: white;
+    }
+
+    .main-pagination .page-btn.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+    }
+
+    .main-pagination .page-indicator {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        padding: 0 1rem;
+    }
+</style>
 {% endif %}
 
 <style>
+    .table-action-btn {
+        color: black;
+    }
+
+    .table-action-btn:hover {
+        color: white !important;
+    }
+
     .status-dot {
         width: 10px;
         height: 10px;
