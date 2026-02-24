@@ -7,6 +7,7 @@ urlpatterns = [
     path('initiatives/', views.InitiativeListView.as_view(), name='initiative_list'),
     path('initiatives/create/', views.InitiativeCreateView.as_view(), name='initiative_create'),
     path('initiatives/<int:pk>/edit/', views.InitiativeUpdateView.as_view(), name='initiative_edit'),
+    path('initiatives/<int:pk>/toast/', views.InitiativeToastView.as_view(), name='initiative_toast'),
     path('initiatives/<int:pk>/delete/', views.InitiativeDeleteView.as_view(), name='initiative_delete'),
     path('initiatives/<int:pk>/benefit/', views.RealizedBenefitEntryView.as_view(), name='benefit_entry'),
     path('csv/download/', views.CSVDownloadView.as_view(), name='csv_download'),

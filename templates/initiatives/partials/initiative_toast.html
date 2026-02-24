@@ -1,0 +1,129 @@
+{% load humanize %}
+
+<div id="initiativeToast" class="initiative-toast show">
+    <div class="toast-content glass">
+        <button class="toast-close" onclick="closeToast(event)"><i class="fas fa-times"></i></button>
+        <div class="toast-header">
+            <h3 class="gradient-text">{{ initiative.name }}</h3>
+            <span class="badge" style="background: rgba(0, 122, 255, 0.1); color: var(--primary-color);">
+                {{ initiative.department }}</span>
+        </div>
+        <div class="toast-body">
+            <div class="toast-meta" style="margin-bottom: 0.5rem;">
+                <span><i class="fas fa-microchip"></i> <span>{{ initiative.technology }}</span></span>
+                <span><i class="fas fa-chart-line"></i> Total Impact:
+                    ${% if total_impact %}{{ total_impact|floatformat:0|intcomma }}{% else %}0{% endif %}
+                </span>
+            </div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; margin-bottom: 1rem;">
+                <!-- KPI Chart -->
+                <div
+                    style="flex: 1; min-width: 200px; height: 180px; position: relative; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); padding: 0.5rem;">
+                    <p
+                        style="font-size: 0.7rem; font-weight: 600; text-align: center; margin-bottom: 0.2rem; color: var(--text-secondary);">
+                        KPI: {{ initiative.kpi_name|default:"Value" }}</p>
+                    <canvas id="toastKpiChart"></canvas>
+                </div>
+
+                <!-- Financial Impact Chart -->
+                <div
+                    style="flex: 1; min-width: 200px; height: 180px; position: relative; background: rgba(0,0,0,0.02); border-radius: 8px; border: 1px solid rgba(0,0,0,0.05); padding: 0.5rem;">
+                    <p
+                        style="font-size: 0.7rem; font-weight: 600; text-align: center; margin-bottom: 0.2rem; color: var(--text-secondary);">
+                        {{ impact_label }}</p>
+                    <canvas id="toastImpactChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+        <div class="toast-footer">
+            <a href="{% url 'initiative_edit' initiative.pk %}" class="btn-secondary"><i class="fas fa-edit"></i>
+                Edit</a>
+            <a href="{% url 'benefit_entry' initiative.pk %}" class="btn-primary"><i class="fas fa-plus"></i> Add
+                Benefit</a>
+        </div>
+    </div>
+</div>
+
+{{ labels|json_script:"labels-data" }}
+{{ kpi_data|json_script:"kpi-data" }}
+{{ impact_data|json_script:"impact-data" }}
+
+<script>
+    (function () {
+        var labels = JSON.parse(document.getElementById('labels-data').textContent);
+        var kpiData = JSON.parse(document.getElementById('kpi-data').textContent);
+        var impactData = JSON.parse(document.getElementById('impact-data').textContent);
+        var impactLabel = "{{ impact_label|escapejs }}";
+
+        var kpiCtx = document.getElementById('toastKpiChart');
+        var impactCtx = document.getElementById('toastImpactChart');
+
+        var commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            var label = context.dataset.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed.y !== null) {
+                                if (label.includes('$')) {
+                                    label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                } else {
+                                    label += new Intl.NumberFormat('en-US').format(context.parsed.y);
+                                }
+                            }
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { display: false },
+                    ticks: { font: { size: 9 }, maxRotation: 45, minRotation: 45 }
+                },
+                y: {
+                    beginAtZero: true,
+                    ticks: { font: { size: 9 }, maxTicksLimit: 5 }
+                }
+            }
+        };
+
+        if (kpiCtx) {
+            new Chart(kpiCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '{{ initiative.kpi_name|default:"KPI"|escapejs }}',
+                        data: kpiData,
+                        backgroundColor: '#8F00FF', // Purple
+                        borderRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        if (impactCtx) {
+            new Chart(impactCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: impactLabel,
+                        data: impactData,
+                        backgroundColor: (impactLabel.includes('Productivity')) ? '#4285F4' : '#34A853',
+                        borderRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+    })();
+</script>

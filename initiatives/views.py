@@ -563,3 +563,50 @@ from django.views.generic import TemplateView
 
 class BulkConfigView(TemplateView):
     template_name = 'initiatives/bulk_config.html'
+
+from dateutil.relativedelta import relativedelta
+from datetime import date
+
+class InitiativeToastView(View):
+    def get(self, request, pk):
+        initiative = get_object_or_404(Initiative, pk=pk)
+        
+        # Last 12 months logic
+        today = date.today()
+        start_date = today.replace(day=1) - relativedelta(months=11)
+        
+        history = RealizedBenefit.objects.filter(
+            initiative=initiative,
+            month__gte=start_date
+        ).order_by('month')
+        
+        # Build dictionary for 12 months to ensure no gaps
+        months = [(start_date + relativedelta(months=i)) for i in range(12)]
+        data_dict = {m: {'kpi': 0, 'impact': 0} for m in months}
+        
+        for h in history:
+            m = h.month.replace(day=1)
+            if m in data_dict:
+                data_dict[m]['kpi'] = h.kpi_value
+                if initiative.benefit_name == 'Productivity Gain':
+                    data_dict[m]['impact'] = h.calculated_dollars
+                else:
+                    data_dict[m]['impact'] = h.revenue_impact
+                
+        labels = [m.strftime('%b %Y') for m in months]
+        kpi_data = [data_dict[m]['kpi'] for m in months]
+        impact_data = [data_dict[m]['impact'] for m in months]
+        
+        total_kpi = sum(kpi_data)
+        total_impact = sum(impact_data)
+        
+        context = {
+            'initiative': initiative,
+            'labels': labels,
+            'kpi_data': kpi_data,
+            'impact_data': impact_data,
+            'impact_label': 'Productivity Gain ($)' if initiative.benefit_name == 'Productivity Gain' else 'Revenue Impact ($)',
+            'total_kpi': total_kpi,
+            'total_impact': total_impact,
+        }
+        return render(request, 'initiatives/partials/initiative_toast.html', context)

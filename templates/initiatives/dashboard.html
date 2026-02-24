@@ -362,8 +362,9 @@
                     {% for stat in table_by_initiative %}
                     <tr>
                         <td style="font-size: 0.75rem; font-weight: 600;">
-                            <a href="{% url 'benefit_entry' stat.initiative__id %}"
-                                style="text-decoration: none; color: inherit;" class="edit-link">
+                            <a href="#" hx-get="{% url 'initiative_toast' stat.initiative__id %}"
+                                hx-target="#toast-container" style="text-decoration: none; color: inherit;"
+                                class="edit-link">
                                 {{ stat.initiative__name }}
                             </a>
                         </td>
@@ -396,8 +397,9 @@
             <div class="mobile-trend-card">
                 <div class="trend-card-header">
                     <strong>
-                        <a href="{% url 'benefit_entry' stat.initiative__id %}"
-                            style="text-decoration: none; color: inherit;" class="edit-link">
+                        <a href="#" hx-get="{% url 'initiative_toast' stat.initiative__id %}"
+                            hx-target="#toast-container" style="text-decoration: none; color: inherit;"
+                            class="edit-link">
                             {{ stat.initiative__name }}
                         </a>
                     </strong>
@@ -657,8 +659,109 @@
             font-size: 0.75rem;
         }
     }
+
+    /* Toast Modal Styles */
+    .initiative-toast {
+        position: fixed;
+        bottom: -100%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 90%;
+        max-width: 600px;
+        z-index: 1000;
+        transition: bottom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        visibility: hidden;
+    }
+
+    .initiative-toast.show {
+        bottom: 2rem;
+        visibility: visible;
+    }
+
+    .toast-content {
+        padding: 1.5rem;
+        position: relative;
+        border: 2px solid var(--primary-color);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+        background: var(--bg-secondary, #ffffff);
+        border-radius: 16px;
+    }
+
+    [data-theme="dark"] .toast-content {
+        background: rgba(30, 30, 30, 0.95);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .toast-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: transparent;
+        border: none;
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+
+    .toast-close:hover {
+        color: var(--primary-color);
+    }
+
+    .toast-header {
+        margin-bottom: 1rem;
+        padding-right: 2rem;
+    }
+
+    .toast-header h3 {
+        margin-bottom: 0.5rem;
+        font-size: 1.25rem;
+    }
+
+    .toast-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        font-size: 0.8rem;
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .toast-meta i {
+        color: var(--primary-color);
+        margin-right: 0.25rem;
+    }
+
+    .toast-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+
+    .toast-footer a {
+        flex: 1;
+        text-align: center;
+        justify-content: center;
+        font-size: 0.85rem;
+    }
+
+    @media (max-width: 480px) {
+        .initiative-toast.show {
+            bottom: 1rem;
+        }
+
+        .toast-footer {
+            flex-direction: column;
+        }
+
+        .toast-content {
+            padding: 1.25rem;
+        }
+    }
 </style>
 
+<div id="toast-container"></div>
 {% endblock %}
 
 {% block extra_js %}
@@ -771,5 +874,18 @@
         var initialTab = "{{ active_tab|default:'initiative' }}";
         switchTable(initialTab);
     });
+
+    function closeToast(event) {
+        if (event) {
+            event.stopPropagation();
+        }
+        var toast = document.getElementById('initiativeToast');
+        if (toast) {
+            toast.classList.remove('show');
+            setTimeout(function () {
+                toast.outerHTML = '<div id="toast-container"></div>';
+            }, 400); // clear after animation
+        }
+    }
 </script>
 {% endblock %}
