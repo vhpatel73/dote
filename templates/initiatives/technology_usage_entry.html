@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="margin-bottom: 2rem;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="margin-top: 1rem;">{{ technology.name }}: <span class="gradient-text">Consumption</span></h1>
+            </div>
+            <a href="{% url 'technology_list' %}" class="btn-secondary"
+                style="background: rgba(143, 0, 255, 0.05); padding: 0.5rem 1rem; border-radius: 8px; color: #8F00FF;">
+                <i class="fas fa-arrow-left"></i> Back to Tech
+            </a>
+        </div>
+        <div style="display: flex; gap: 1rem; margin-bottom: 1rem; margin-top: 1rem; flex-wrap: wrap;"
+            class="text-tiny">
+            <span><i class="{{ technology.icon }}"></i> Icon Class: {{ technology.icon }}</span>
+            <span><i class="fas fa-tachometer-alt"></i> Max Consumption: {{
+                technology.max_consumption|intword|title }}</span>
+        </div>
+        <p class="text-secondary">Capture the usage metrics monthly for this specific technology asset.</p>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 1fr 2fr;">
+        <div class="card glass" id="entry-card"
+            style="border: 3px solid #8f00ff; border-radius: 8px !important; min-width: 0;">
+            <h3 id="form-title">Record Montly Usage</h3>
+            <form method="post" style="margin-top: 1.5rem;" id="usage-form">
+                {% csrf_token %}
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Month</label>
+                    <input type="month" name="month" id="id_month" required value="{% now 'Y-m' %}">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label>Consumption</label>
+                    <input type="number" step="0.01" name="consumption" id="id_consumption" required
+                        placeholder="Enter consumption volume">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    <button type="submit" id="submit-btn" class="btn-primary"
+                        style="width: 100%; justify-content: center;">
+                        Submit Entry
+                    </button>
+                    <button type="button" id="cancel-edit" class="btn-secondary"
+                        style="display: none; width: 100%; text-align: center;">
+                        Cancel Edit
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- History -->
+        <div class="card glass" style="min-width: 0;">
+            <h3>Recent History (Last 12)</h3>
+            <div class="table-container"
+                style="max-height: 400px; overflow-y: auto; overflow-x: auto; margin-top: 1.5rem; width: 100%;">
+                <table style="width: 100%; min-width: 400px;">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Consumption</th>
+                            <th>Utilization %</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for entry in history %}
+                        <tr>
+                            <td>{{ entry.month|date:"M Y" }}</td>
+                            <td style="font-weight: 600;">{{ entry.consumption|intword|title }}</td>
+                            <td>
+                                {% if technology.max_consumption > 0 %}
+                                <span style="color: var(--primary-color);">
+                                    {% widthratio entry.consumption technology.max_consumption 100 %}%
+                                </span>
+                                {% else %}
+                                N/A
+                                {% endif %}
+                            </td>
+                            <td style="justify-content: center;">
+                                <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                    <button type="button" class="action-btn edit-entry-btn"
+                                        style="border: none; cursor: pointer;" data-month="{{ entry.month|date:'Y-m' }}"
+                                        data-consumption="{{ entry.consumption }}" title="Edit">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form action="{% url 'technology_usage_delete' entry.pk %}" method="post"
+                                        onsubmit="return confirm('Delete this entry?')" style="margin: 0;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-btn delete" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; opacity: 0.5;">No consumption history yet.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        font-weight: 600;
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+    }
+
+    .form-group input,
+    .form-group select {
+        padding: 0.75rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        font-size: 1rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    table th,
+    table td {
+        font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+        .grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+
+{% block extra_js %}
+<script>
+    const formTitle = document.getElementById('form-title');
+    const submitBtn = document.getElementById('submit-btn');
+    const cancelBtn = document.getElementById('cancel-edit');
+    const monthInput = document.getElementById('id_month');
+    const defaultMonth = monthInput ? monthInput.value : '';
+
+    document.querySelectorAll('.edit-entry-btn').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const month = this.getAttribute('data-month');
+            const cons = this.getAttribute('data-consumption');
+
+            if (monthInput) monthInput.value = month;
+            const consInput = document.getElementById('id_consumption');
+            if (consInput) consInput.value = cons;
+
+            // UI Changes for Edit Mode
+            if (formTitle) formTitle.textContent = 'Edit Monthly Entry';
+            if (submitBtn) submitBtn.textContent = 'Update Entry';
+            if (cancelBtn) cancelBtn.style.display = 'block';
+
+            // Scroll to form and highlight
+            const formCard = document.getElementById('entry-card');
+            if (formCard) {
+                formCard.scrollIntoView({ behavior: 'smooth' });
+                formCard.style.outline = '2px solid var(--primary-color)';
+                setTimeout(() => { formCard.style.outline = 'none'; }, 2000);
+            }
+        });
+    });
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function () {
+            document.getElementById('usage-form').reset();
+            if (monthInput) monthInput.value = defaultMonth;
+
+            if (formTitle) formTitle.textContent = 'Record Montly Usage';
+            if (submitBtn) submitBtn.textContent = 'Submit Entry';
+            if (cancelBtn) cancelBtn.style.display = 'none';
+        });
+    }
+</script>
+{% endblock %}
+{% endblock %}
