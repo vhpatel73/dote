@@ -1,7 +1,7 @@
 {
     "name": "AI Value Board",
     "short_name": "AI Value",
-    "description": "AI Value Tracker to measure productivity and revenue impact of AI solutions.",
+    "description": "AI Value Tracker to measure efficiency and revenue impact of AI solutions.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0f172a",

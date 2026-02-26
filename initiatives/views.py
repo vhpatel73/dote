@@ -368,7 +368,7 @@ class BenefitCSVDownloadView(View):
         writer = csv.writer(response)
         writer.writerow([
             'Initiative Name', 'Department', 'Month', 'KPI Name', 'KPI Value', 
-            'Minutes Saved', 'Productivity Gain ($)', 'Revenue Impact ($)'
+            'Minutes Saved', 'Efficiency Gain ($)', 'Revenue Impact ($)'
         ])
         
         benefits = RealizedBenefit.objects.select_related('initiative').all().order_by('-month')
@@ -605,7 +605,7 @@ class InitiativeToastView(View):
             'labels': labels,
             'kpi_data': kpi_data,
             'impact_data': impact_data,
-            'impact_label': 'Productivity Gain ($)' if initiative.benefit_name == 'Productivity Gain' else 'Revenue Impact ($)',
+            'impact_label': 'Efficiency Gain ($)' if initiative.benefit_name == 'Productivity Gain' else 'Revenue Impact ($)',
             'total_kpi': total_kpi,
             'total_impact': total_impact,
         }

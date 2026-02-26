@@ -25,7 +25,7 @@ class Initiative(models.Model):
     ]
 
     BENEFIT_NAME_CHOICES = [
-        ('Productivity Gain', 'Productivity Gain'),
+        ('Productivity Gain', 'Efficiency Gain'),
         ('New Business', 'New Business'),
     ]
 

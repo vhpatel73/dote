@@ -17,7 +17,7 @@
         </div>
         <div style="display: flex; gap: 1rem; margin-bottom: 1rem; margin-top: 1rem; flex-wrap: wrap;"
             class="text-tiny">
-            <span><i class="fas fa-tag"></i> {{ initiative.benefit_name }}</span>
+            <span><i class="fas fa-tag"></i> {{ initiative.get_benefit_name_display }}</span>
             <span><i class="fas fa-building"></i> {{ initiative.department }}</span>
             <span><i class="fas fa-user-tie"></i> {{ initiative.requester_name }}</span>
             <span style="word-break: break-all;"><i class="fas fa-envelope"></i> {{ initiative.it_owner_email }}</span>

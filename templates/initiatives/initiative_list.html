@@ -70,7 +70,7 @@
                     </a>
                 </th>
                 <th style="text-align: right; padding-right: 1.5rem; font-size:0.9rem; font-weight: 600; color: black;">
-                    Productivity Gain<br /><span class="text-tiny" style="font-size: xx-small;">($ Since
+                    Efficiency Gain<br /><span class="text-tiny" style="font-size: xx-small;">($ Since
                         inception)</span></th>
                 <th style="text-align: right; padding-right: 1.5rem; font-size:0.9rem; font-weight: 600; color: black;">
                     Revenue Impact<br /><span class="text-tiny" style="font-size: xx-small;">($ Since inception)</span>
@@ -94,7 +94,7 @@
                     <p style="margin: 0 1.5rem;">
                         <span class="badge"
                             style="font-size: 0.5rem; background: rgba(0, 0, 0, 0.03); color: var(--text-secondary); border: 1px solid rgba(0, 0, 0, 0.05); padding: 0.1rem 0.4rem; text-transform: none;">
-                            {{ initiative.benefit_name }}</span>
+                            {{ initiative.get_benefit_name_display }}</span>
                     </p>
                 </td>
                 <td style="font-size: 0.75rem;">
@@ -172,7 +172,7 @@
                     {{ initiative.technology }}</span>
                 <span class="badge"
                     style="font-size: 0.6rem; background: rgba(0, 0, 0, 0.03); color: var(--text-secondary); border: 1px solid rgba(0, 0, 0, 0.05); padding: 0.1rem 0.4rem;">
-                    {{ initiative.benefit_name }}</span>
+                    {{ initiative.get_benefit_name_display }}</span>
             </div>
             <div style="font-size: 0.7rem; color: var(--text-secondary); opacity: 0.7; line-height: 1.2;">
                 {{ initiative.description|truncatechars:120 }}
@@ -181,7 +181,7 @@
         <div class="card-body" style="padding-top: 0.75rem;">
             <div class="financial-row">
                 <div class="financial-col">
-                    <span class="info-label">Productivity</span>
+                    <span class="info-label">Efficiency</span>
                     <span class="financial-value">
                         {% if initiative.total_productivity > 0 %}
                         ${{ initiative.total_productivity|floatformat:0|intcomma }}
