@@ -10,7 +10,7 @@ from django.utils import timezone
 from django.core import serializers
 from itertools import chain
 import json
-from .models import Initiative, RealizedBenefit, WebhookAuditLog, AuditLog
+from .models import Initiative, RealizedBenefit, WebhookAuditLog, AuditLog, Technology, TechnologyUsage
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from datetime import datetime
@@ -610,3 +610,91 @@ class InitiativeToastView(View):
             'total_impact': total_impact,
         }
         return render(request, 'initiatives/partials/initiative_toast.html', context)
+
+class TechnologyListView(ListView):
+    model = Technology
+    template_name = 'initiatives/technology_list.html'
+    context_object_name = 'technologies'
+    
+    def get_queryset(self):
+        current_year = timezone.now().year
+        return Technology.objects.annotate(
+            ytd_consumption=Coalesce(
+                Sum('usages__consumption', filter=Q(usages__month__year=current_year)),
+                0.0,
+                output_field=FloatField()
+            )
+        ).order_by('name')
+
+class TechnologyCreateView(CreateView):
+    model = Technology
+    template_name = 'initiatives/technology_form.html'
+    fields = ['name', 'icon', 'max_consumption']
+    success_url = reverse_lazy('technology_list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Technology created successfully.')
+        return super().form_valid(form)
+
+class TechnologyUpdateView(UpdateView):
+    model = Technology
+    template_name = 'initiatives/technology_form.html'
+    fields = ['name', 'icon', 'max_consumption']
+    success_url = reverse_lazy('technology_list')
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Technology updated successfully.')
+        return super().form_valid(form)
+
+class TechnologyDeleteView(View):
+    def post(self, request, pk):
+        tech = get_object_or_404(Technology, pk=pk)
+        name = tech.name
+        tech.delete()
+        messages.success(request, f'Technology "{name}" deleted.')
+        return redirect('technology_list')
+
+class TechnologyUsageEntryView(View):
+    def get(self, request, pk):
+        tech = get_object_or_404(Technology, pk=pk)
+        history = tech.usages.all()[:12]
+        return render(request, 'initiatives/technology_usage_entry.html', {
+            'technology': tech,
+            'history': history,
+        })
+        
+    def post(self, request, pk):
+        tech = get_object_or_404(Technology, pk=pk)
+        
+        month_str = request.POST.get('month')
+        consumption = float(request.POST.get('consumption', 0))
+        
+        try:
+            month_date = datetime.strptime(month_str, '%Y-%m').date()
+            month_date = month_date.replace(day=1)
+            
+            usage, created = TechnologyUsage.objects.update_or_create(
+                technology=tech,
+                month=month_date,
+                defaults={
+                    'consumption': consumption,
+                }
+            )
+            
+            if created:
+                messages.success(request, 'Usage entry created successfully.')
+            else:
+                messages.success(request, 'Usage entry updated successfully.')
+                
+        except ValueError as e:
+            messages.error(request, 'Invalid input format.')
+            
+        return redirect('technology_usage_entry', pk=tech.pk)
+
+class TechnologyUsageDeleteView(View):
+    def post(self, request, pk):
+        usage = get_object_or_404(TechnologyUsage, pk=pk)
+        tech_pk = usage.technology.pk
+        usage.delete()
+        messages.success(request, 'Usage entry deleted.')
+        return redirect('technology_usage_entry', pk=tech_pk)

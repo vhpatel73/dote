@@ -21,4 +21,12 @@ urlpatterns = [
     path('bulk-config/', views.BulkConfigView.as_view(), name='bulk_config'),
     path('audit/', views.AuditLogListView.as_view(), name='audit_list'),
     path('about/', views.AboutView.as_view(), name='about'),
+    
+    # Technology Configs
+    path('technologies/', views.TechnologyListView.as_view(), name='technology_list'),
+    path('technologies/create/', views.TechnologyCreateView.as_view(), name='technology_create'),
+    path('technologies/<int:pk>/edit/', views.TechnologyUpdateView.as_view(), name='technology_edit'),
+    path('technologies/<int:pk>/delete/', views.TechnologyDeleteView.as_view(), name='technology_delete'),
+    path('technologies/<int:pk>/usage/', views.TechnologyUsageEntryView.as_view(), name='technology_usage_entry'),
+    path('usage/delete/<int:pk>/', views.TechnologyUsageDeleteView.as_view(), name='technology_usage_delete'),
 ]

@@ -11,10 +11,11 @@ class Initiative(models.Model):
         ('D&R', 'D&R'),
         ('IT', 'IT'),
         ('Human Resources', 'Human Resources'),
-        ('Experience Organization', 'Experience Organization'),
+        ('Marketing', 'Marketing'),
         ('Data/Insight', 'Data/Insight'),
         ('Finance & Procurement', 'Finance & Procurement'),
         ('Field Operations', 'Field Operations'),
+        ('All', 'All')
     ]
 
     STATUS_CHOICES = [
@@ -29,17 +30,17 @@ class Initiative(models.Model):
         ('New Business', 'New Business'),
     ]
 
-    name = models.CharField(max_length=32, default="Untitled Initiative")
-    requester_name = models.CharField(max_length=32)
-    lob_owner = models.CharField(max_length=32, verbose_name="LOB Owner")
+    name = models.CharField(max_length=100, default="Untitled Initiative")
+    requester_name = models.CharField(max_length=100)
+    lob_owner = models.CharField(max_length=100, verbose_name="LOB Owner")
     description = models.TextField(max_length=2048)
-    it_owner = models.CharField(max_length=32, verbose_name="IT Owner")
+    it_owner = models.CharField(max_length=100, verbose_name="IT Owner")
     it_owner_email = models.EmailField(max_length=128, verbose_name="IT Owner Email", default="it@example.com")
-    department = models.CharField(max_length=32, choices=DEPARTMENT_CHOICES)
-    status = models.CharField(max_length=32, choices=STATUS_CHOICES)
-    technology = models.CharField(max_length=32)
+    department = models.CharField(max_length=100, choices=DEPARTMENT_CHOICES)
+    status = models.CharField(max_length=100, choices=STATUS_CHOICES)
+    technology = models.CharField(max_length=100)
     value = models.TextField(max_length=1024, verbose_name="Business Value")
-    benefit_name = models.CharField(max_length=32, choices=BENEFIT_NAME_CHOICES)
+    benefit_name = models.CharField(max_length=100, choices=BENEFIT_NAME_CHOICES)
     
     # Webhook Integration
     webhook_key = models.CharField(max_length=64, unique=True, blank=True, null=True, help_text="Secret key for external reporting via webhook")
@@ -137,3 +138,23 @@ class AuditLog(models.Model):
         
     def __str__(self):
         return f"{self.action} {self.object_type}: {self.object_name} via {self.source} at {self.timestamp}"
+
+class Technology(models.Model):
+    name = models.CharField(max_length=32, unique=True)
+    icon = models.CharField(max_length=255, help_text="Path or class for the icon (e.g., 'fas fa-server' or '/static/img/icon.png')")
+    max_consumption = models.FloatField(default=0.0)
+
+    def __str__(self):
+        return self.name
+
+class TechnologyUsage(models.Model):
+    technology = models.ForeignKey(Technology, on_delete=models.CASCADE, related_name='usages')
+    month = models.DateField(help_text="Format: YYYY-MM-01")
+    consumption = models.FloatField(default=0.0)
+
+    class Meta:
+        ordering = ['-month']
+        unique_together = ('technology', 'month')
+
+    def __str__(self):
+        return f"{self.technology.name} - {self.month.strftime('%m/%Y')}"
