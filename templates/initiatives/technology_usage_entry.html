@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load humanize %}
+{% load custom_filters %}
 
 {% block content %}
 <div style="max-width: 900px; margin: 0 auto;">
@@ -18,7 +19,7 @@
             class="text-tiny">
             <span><i class="{{ technology.icon }}"></i> Icon Class: {{ technology.icon }}</span>
             <span><i class="fas fa-tachometer-alt"></i> Max Consumption: {{
-                technology.max_consumption|intword|title }}</span>
+                technology.max_consumption|compact_number }}</span>
         </div>
         <p class="text-secondary">Capture the usage metrics monthly for this specific technology asset.</p>
     </div>
@@ -71,7 +72,7 @@
                         {% for entry in history %}
                         <tr>
                             <td>{{ entry.month|date:"M Y" }}</td>
-                            <td style="font-weight: 600;">{{ entry.consumption|intword|title }}</td>
+                            <td style="font-weight: 600;">{{ entry.consumption|compact_number }}</td>
                             <td>
                                 {% if technology.max_consumption > 0 %}
                                 <span style="color: var(--primary-color);">

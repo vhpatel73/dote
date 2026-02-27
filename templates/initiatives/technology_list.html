@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load humanize %}
+{% load custom_filters %}
 
 {% block content %}
 <div class="header-action-row">
@@ -11,17 +12,17 @@
     </div>
 </div>
 
-<div class="grid"
-    style="grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+<div class="tech-list-container" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem;">
     {% for tech in technologies %}
-    <div class="card glass"
-        style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
-        <div style="display: flex; align-items: center; gap: 1rem;">
+    <div class="card glass tech-card"
+        style="padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; border-radius: 12px; border: 1px solid rgba(0,0,0,0.05);">
+
+        <div class="tech-info" style="display: flex; align-items: center; gap: 1rem;">
             <div
-                style="display: flex; justify-content: center; align-items: center; font-size: 1.75rem; color: var(--primary-color); width: 48px; height: 48px; background: rgba(143, 0, 255, 0.05); border-radius: 12px;">
+                style="display: flex; justify-content: center; align-items: center; font-size: 1.5rem; color: var(--primary-color); width: 48px; height: 48px; background: rgba(143, 0, 255, 0.05); border-radius: 12px; flex-shrink: 0;">
                 <i class="{{ tech.icon }}"></i>
             </div>
-            <div style="flex: 1;">
+            <div>
                 <a href="{% url 'technology_edit' tech.pk %}" class="edit-link"
                     style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none;">
                     <strong style="font-size: 1.1rem; color: var(--text-primary);">{{ tech.name }}</strong>
@@ -30,27 +31,28 @@
             </div>
         </div>
 
-        <div
-            style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: rgba(0,0,0,0.02); padding: 1.25rem 1rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.03);">
+        <div class="tech-stats"
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: rgba(0,0,0,0.02); padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid rgba(0,0,0,0.03);">
             <div>
                 <div
-                    style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.35rem;">
+                    style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem;">
                     YTD Consumed</div>
-                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); word-break: break-word;">
-                    {{ tech.ytd_consumption|intword|title }}</div>
+                <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); word-break: break-word;">
+                    {{ tech.ytd_consumption|compact_number }}</div>
             </div>
             <div>
                 <div
-                    style="font-size: 0.75rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.35rem;">
+                    style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.25rem; text-align: right;">
                     Total Capacity</div>
-                <div style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); word-break: break-word;">
-                    {{ tech.max_consumption|intword|title }}</div>
+                <div
+                    style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); word-break: break-word; text-align: right;">
+                    {{ tech.max_consumption|compact_number }}</div>
             </div>
         </div>
 
-        <div style="margin-top: auto;">
-            <a href="{% url 'technology_usage_entry' tech.pk %}" class="btn-secondary"
-                style="width: 100%; justify-content: center; padding: 0.6rem;">
+        <div class="tech-action" style="display: flex; align-items: center;">
+            <a href="{% url 'technology_usage_entry' tech.pk %}" class="btn-secondary tech-action-btn"
+                style="width: 100%; justify-content: center; padding: 0.6rem; white-space: nowrap;">
                 <i class="fas fa-chart-line"></i> Manage Usage
             </a>
         </div>
@@ -69,5 +71,39 @@
     </div>
     {% endfor %}
 </div>
+
+<style>
+    @media (min-width: 992px) {
+        .tech-card {
+            flex-direction: row !important;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem !important;
+        }
+
+        .tech-info {
+            flex: 1;
+            min-width: 250px;
+            margin-bottom: 0;
+        }
+
+        .tech-stats {
+            flex: 1;
+            min-width: 300px;
+            margin-bottom: 0 !important;
+            padding: 0.5rem 1rem !important;
+        }
+
+        .tech-action {
+            margin-left: 1rem;
+            width: auto !important;
+        }
+
+        .tech-action-btn {
+            width: auto !important;
+            padding: 0.5rem 1rem !important;
+        }
+    }
+</style>
 
 {% endblock %}
