@@ -92,6 +92,43 @@ class DashboardView(View):
             total_impact=F('prod_gain') + F('rev_impact')
         ).order_by('-total_impact')
 
+        tech_stats_raw = RealizedBenefit.objects.values(
+            'initiative__technology', 'initiative__id', 'initiative__name', 'initiative__kpi_name'
+        ).annotate(
+            total_kpi=Coalesce(Sum('kpi_value'), 0.0),
+            prod_gain=Coalesce(Sum(F('kpi_value') * F('initiative__multiplier_minutes') * F('initiative__multiplier_dollars')), 0.0),
+            rev_impact=Coalesce(Sum('revenue_impact'), 0.0)
+        )
+        
+        tech_dict = {}
+        for row in tech_stats_raw:
+            tech = row['initiative__technology'] or 'Unspecified'
+            if tech not in tech_dict:
+                tech_dict[tech] = {
+                    'technology': tech,
+                    'initiatives': [],
+                    'total_kpi': 0.0,
+                    'total_impact': 0.0
+                }
+            if row['initiative__name']:
+                row_total_impact = row['prod_gain'] + row['rev_impact']
+                tech_dict[tech]['initiatives'].append({
+                    'id': row['initiative__id'],
+                    'name': row['initiative__name'],
+                    'kpi_name': row['initiative__kpi_name'] or 'KPI',
+                    'total_kpi': row['total_kpi'],
+                    'total_impact': row_total_impact
+                })
+            tech_dict[tech]['total_kpi'] += row['total_kpi']
+            tech_dict[tech]['total_impact'] += row['prod_gain'] + row['rev_impact']
+            
+        tech_stats = list(tech_dict.values())
+        for stat in tech_stats:
+            stat['initiatives'].sort(key=lambda x: x['total_impact'], reverse=True)
+            stat['initiatives_list'] = ', '.join(i['name'] for i in stat['initiatives'])
+        tech_stats.sort(key=lambda x: x['total_impact'], reverse=True)
+
+
         context = {
             'total_initiatives': initiatives.count(),
             'total_productivity': total_productivity,
@@ -106,6 +143,7 @@ class DashboardView(View):
             'table_by_month': monthly_stats.order_by('-month_trunc'),
             'table_by_initiative': list(initiative_stats),
             'table_by_function': list(function_stats),
+            'table_by_tech': tech_stats,
             'active_tab': request.GET.get('tab', 'initiative'),
         }
         return render(request, 'initiatives/dashboard.html', context)

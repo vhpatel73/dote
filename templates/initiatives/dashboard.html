@@ -280,6 +280,7 @@
             <button id="btnInitiative" class="btn-toggle active" onclick="switchTable('initiative')">By
                 Initiative</button>
             <button id="btnFunction" class="btn-toggle" onclick="switchTable('function')">By Function</button>
+            <button id="btnTech" class="btn-toggle" onclick="switchTable('tech')">By Tech</button>
             <button id="btnMonth" class="btn-toggle" onclick="switchTable('month')">By Month</button>
         </div>
     </div>
@@ -491,6 +492,85 @@
                     </div>
                 </div>
             </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="tableTech" style="display: none;">
+        <div class="trend-table-view">
+            {% for tech_stat in table_by_tech %}
+            <h4
+                style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: white; font-weight: 600; font-size: 0.95rem; background-color: var(--primary-color); padding: 0.5rem;">
+                {{ tech_stat.technology|default:"Unspecified" }}</h4>
+            <table class="trend-table">
+                <thead>
+                    <tr>
+                        <th>Initiative Name</th>
+                        <th style="min-width: 120px;">KPI</th>
+                        <th style="text-align: right; min-width: 150px;">Total Impact ($)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for init in tech_stat.initiatives %}
+                    <tr>
+                        <td style="font-size: 0.75rem; font-weight: 600;">
+                            <a href="#" hx-get="{% url 'initiative_toast' init.id %}" hx-target="#toast-container"
+                                style="text-decoration: none; color: inherit;" class="edit-link">
+                                {{ init.name }}
+                            </a>
+                        </td>
+                        <td style="font-size: 0.75rem;">
+                            <span style="font-weight: 600;">{{ init.total_kpi|floatformat:0|intcomma }}</span>
+                            <span style="font-size: 0.65rem; color: var(--text-secondary); margin-left: 4px;">
+                                {{ init.kpi_name }}</span>
+                        </td>
+                        <td style="text-align: right; font-weight: 700; color: #8F00FF; font-size: 0.75rem;">
+                            ${{ init.total_impact|floatformat:0|intcomma }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 1rem; opacity: 0.5;">No initiatives
+                            available.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% empty %}
+            <p style="text-align: center; opacity: 0.5; padding: 2rem;">No data available yet.</p>
+            {% endfor %}
+        </div>
+        <div class="trend-card-view">
+            {% for tech_stat in table_by_tech %}
+            <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem; color: var(--text-primary); padding: 0 1rem;">
+                {{ tech_stat.technology|default:"Unspecified" }}</h4>
+            {% for init in tech_stat.initiatives %}
+            <div class="mobile-trend-card">
+                <div class="trend-card-header">
+                    <strong>
+                        <a href="#" hx-get="{% url 'initiative_toast' init.id %}" hx-target="#toast-container"
+                            style="text-decoration: none; color: inherit;" class="edit-link">
+                            {{ init.name }}
+                        </a>
+                    </strong>
+                </div>
+                <div class="trend-card-body">
+                    <div class="trend-stat-row">
+                        <span class="trend-stat-label">Total KPI</span>
+                        <span class="trend-stat-value">
+                            {{ init.total_kpi|floatformat:0|intcomma }}
+                            <span style="font-size: 0.65rem; color: var(--text-secondary); margin-left: 2px;">
+                                {{ init.kpi_name }}</span>
+                        </span>
+                    </div>
+                    <div class="trend-stat-row total">
+                        <span class="trend-stat-label">Total Impact</span>
+                        <span class="trend-stat-value" style="color: #8F00FF;">
+                            ${{ init.total_impact|floatformat:0|intcomma }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
             {% endfor %}
         </div>
     </div>
@@ -843,19 +923,23 @@
         var btnMonth = document.getElementById('btnMonth');
         var btnInitiative = document.getElementById('btnInitiative');
         var btnFunction = document.getElementById('btnFunction');
+        var btnTech = document.getElementById('btnTech');
 
         var tableMonth = document.getElementById('tableMonth');
         var tableInitiative = document.getElementById('tableInitiative');
         var tableFunction = document.getElementById('tableFunction');
+        var tableTech = document.getElementById('tableTech');
 
         // Reset all buttons and tables
         btnMonth.className = 'btn-toggle';
         btnInitiative.className = 'btn-toggle';
         btnFunction.className = 'btn-toggle';
+        btnTech.className = 'btn-toggle';
 
         tableMonth.style.display = 'none';
         tableInitiative.style.display = 'none';
         tableFunction.style.display = 'none';
+        tableTech.style.display = 'none';
 
         if (type === 'month') {
             btnMonth.className = 'btn-toggle active';
@@ -866,6 +950,9 @@
         } else if (type === 'function') {
             btnFunction.className = 'btn-toggle active';
             tableFunction.style.display = 'block';
+        } else if (type === 'tech') {
+            btnTech.className = 'btn-toggle active';
+            tableTech.style.display = 'block';
         }
     }
 
