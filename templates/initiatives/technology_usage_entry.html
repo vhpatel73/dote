@@ -17,9 +17,9 @@
         </div>
         <div style="display: flex; gap: 1rem; margin-bottom: 1rem; margin-top: 1rem; flex-wrap: wrap;"
             class="text-tiny">
-            <span><i class="{{ technology.icon }}"></i> Icon Class: {{ technology.icon }}</span>
-            <span><i class="fas fa-tachometer-alt"></i> Max Consumption: {{
-                technology.max_consumption|compact_number }}</span>
+            <span><i class="{{ technology.icon }}"></i> {{ technology.name }}</span>
+            <span><i class="fas fa-tachometer-alt"></i> Max Consumption:
+                {{ technology.max_consumption|compact_number }}</span>
         </div>
         <p class="text-secondary">Capture the usage metrics monthly for this specific technology asset.</p>
     </div>
